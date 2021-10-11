@@ -1,0 +1,9 @@
+source "https://cpdc-eap.googlesource.com/ridesharing-driver-sdk.git"
+source "https://cpdc-eap.googlesource.com/geo-nav-sdk.git"
+source 'https://github.com/CocoaPods/Specs.git'
+
+target 'DriverSampleApp' do
+platform :ios, '12.0'
+pod 'GoogleRidesharingDriver'
+
+end

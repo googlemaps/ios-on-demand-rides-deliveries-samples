@@ -1,0 +1,449 @@
+// !$*UTF8*$!
+{
+  archiveVersion = 1;
+  classes = {
+  };
+  objectVersion = 51;
+  objects = {
+
+/* Begin PBXBuildFile section */
+    3B2C6D4224C0F56E00D2BEE8 /* GRSCMapViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3B2C6D2824C0F56E00D2BEE8 /* GRSCMapViewController.m */; };
+    3B2C6D4324C0F56E00D2BEE8 /* GRSCAuthToken.m in Sources */ = {isa = PBXBuildFile; fileRef = 3B2C6D2A24C0F56E00D2BEE8 /* GRSCAuthToken.m */; };
+    3B2C6D4424C0F56E00D2BEE8 /* GRSCAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 3B2C6D2B24C0F56E00D2BEE8 /* GRSCAppDelegate.m */; };
+    3B2C6D4524C0F56E00D2BEE8 /* GRSCStyle.m in Sources */ = {isa = PBXBuildFile; fileRef = 3B2C6D2C24C0F56E00D2BEE8 /* GRSCStyle.m */; };
+    3B2C6D4624C0F56E00D2BEE8 /* GRSCStringUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = 3B2C6D2F24C0F56E00D2BEE8 /* GRSCStringUtils.m */; };
+    3B2C6D4724C0F56E00D2BEE8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3B2C6D3124C0F56E00D2BEE8 /* Assets.xcassets */; };
+    3B2C6D4824C0F56E00D2BEE8 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3B2C6D3324C0F56E00D2BEE8 /* LaunchScreen.storyboard */; };
+    3B2C6D4924C0F56E00D2BEE8 /* GRSCProviderUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = 3B2C6D3524C0F56E00D2BEE8 /* GRSCProviderUtils.m */; };
+    3B2C6D4A24C0F56E00D2BEE8 /* GRSCBottomPanelView.m in Sources */ = {isa = PBXBuildFile; fileRef = 3B2C6D3724C0F56E00D2BEE8 /* GRSCBottomPanelView.m */; };
+    3B2C6D4B24C0F56E00D2BEE8 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 3B2C6D3824C0F56E00D2BEE8 /* main.m */; };
+    3B2C6D4C24C0F56E00D2BEE8 /* GRSCAuthTokenProvider.m in Sources */ = {isa = PBXBuildFile; fileRef = 3B2C6D3C24C0F56E00D2BEE8 /* GRSCAuthTokenProvider.m */; };
+    3B2C6D4D24C0F56E00D2BEE8 /* GRSCProviderService.m in Sources */ = {isa = PBXBuildFile; fileRef = 3B2C6D3E24C0F56E00D2BEE8 /* GRSCProviderService.m */; };
+    3B2C6D4E24C0F56E00D2BEE8 /* GRSCWaypointSelector.m in Sources */ = {isa = PBXBuildFile; fileRef = 3B2C6D3F24C0F56E00D2BEE8 /* GRSCWaypointSelector.m */; };
+    3B2C6D4F24C0F56E00D2BEE8 /* GRSCBottomPanelViewConstants.m in Sources */ = {isa = PBXBuildFile; fileRef = 3B2C6D4024C0F56E00D2BEE8 /* GRSCBottomPanelViewConstants.m */; };
+    C0B948B48A2B8CF662938491 /* libPods-ConsumerSampleApp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 29CACA956BA65AB9016E8EFB /* libPods-ConsumerSampleApp.a */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+    29CACA956BA65AB9016E8EFB /* libPods-ConsumerSampleApp.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-ConsumerSampleApp.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+    3B2C6CEE24C0F52C00D2BEE8 /* ConsumerSampleApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ConsumerSampleApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+    3B2C6D2724C0F56E00D2BEE8 /* GRSCBottomPanelView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GRSCBottomPanelView.h; sourceTree = "<group>"; };
+    3B2C6D2824C0F56E00D2BEE8 /* GRSCMapViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GRSCMapViewController.m; sourceTree = "<group>"; };
+    3B2C6D2924C0F56E00D2BEE8 /* GRSCProviderUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GRSCProviderUtils.h; sourceTree = "<group>"; };
+    3B2C6D2A24C0F56E00D2BEE8 /* GRSCAuthToken.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GRSCAuthToken.m; sourceTree = "<group>"; };
+    3B2C6D2B24C0F56E00D2BEE8 /* GRSCAppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GRSCAppDelegate.m; sourceTree = "<group>"; };
+    3B2C6D2C24C0F56E00D2BEE8 /* GRSCStyle.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GRSCStyle.m; sourceTree = "<group>"; };
+    3B2C6D2D24C0F56E00D2BEE8 /* GRSCWaypointSelector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GRSCWaypointSelector.h; sourceTree = "<group>"; };
+    3B2C6D2E24C0F56E00D2BEE8 /* GRSCProviderService.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GRSCProviderService.h; sourceTree = "<group>"; };
+    3B2C6D2F24C0F56E00D2BEE8 /* GRSCStringUtils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GRSCStringUtils.m; sourceTree = "<group>"; };
+    3B2C6D3024C0F56E00D2BEE8 /* GRSCAuthTokenProvider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GRSCAuthTokenProvider.h; sourceTree = "<group>"; };
+    3B2C6D3124C0F56E00D2BEE8 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+    3B2C6D3224C0F56E00D2BEE8 /* GRSCBottomPanelViewConstants.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GRSCBottomPanelViewConstants.h; sourceTree = "<group>"; };
+    3B2C6D3424C0F56E00D2BEE8 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+    3B2C6D3524C0F56E00D2BEE8 /* GRSCProviderUtils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GRSCProviderUtils.m; sourceTree = "<group>"; };
+    3B2C6D3624C0F56E00D2BEE8 /* GRSCMapViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GRSCMapViewController.h; sourceTree = "<group>"; };
+    3B2C6D3724C0F56E00D2BEE8 /* GRSCBottomPanelView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GRSCBottomPanelView.m; sourceTree = "<group>"; };
+    3B2C6D3824C0F56E00D2BEE8 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+    3B2C6D3924C0F56E00D2BEE8 /* GRSCStyle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GRSCStyle.h; sourceTree = "<group>"; };
+    3B2C6D3A24C0F56E00D2BEE8 /* GRSCAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GRSCAppDelegate.h; sourceTree = "<group>"; };
+    3B2C6D3B24C0F56E00D2BEE8 /* GRSCAuthToken.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GRSCAuthToken.h; sourceTree = "<group>"; };
+    3B2C6D3C24C0F56E00D2BEE8 /* GRSCAuthTokenProvider.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GRSCAuthTokenProvider.m; sourceTree = "<group>"; };
+    3B2C6D3D24C0F56E00D2BEE8 /* GRSCStringUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GRSCStringUtils.h; sourceTree = "<group>"; };
+    3B2C6D3E24C0F56E00D2BEE8 /* GRSCProviderService.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GRSCProviderService.m; sourceTree = "<group>"; };
+    3B2C6D3F24C0F56E00D2BEE8 /* GRSCWaypointSelector.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GRSCWaypointSelector.m; sourceTree = "<group>"; };
+    3B2C6D4024C0F56E00D2BEE8 /* GRSCBottomPanelViewConstants.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GRSCBottomPanelViewConstants.m; sourceTree = "<group>"; };
+    3B2C6D4124C0F56E00D2BEE8 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+    442100B9D331F93700F7C4DF /* Pods-ConsumerSampleApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ConsumerSampleApp.release.xcconfig"; path = "Target Support Files/Pods-ConsumerSampleApp/Pods-ConsumerSampleApp.release.xcconfig"; sourceTree = "<group>"; };
+    9873B096E90A52C3BF31D344 /* Pods-ConsumerSampleApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ConsumerSampleApp.debug.xcconfig"; path = "Target Support Files/Pods-ConsumerSampleApp/Pods-ConsumerSampleApp.debug.xcconfig"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+    3B2C6CEB24C0F52C00D2BEE8 /* Frameworks */ = {
+      isa = PBXFrameworksBuildPhase;
+      buildActionMask = 2147483647;
+      files = (
+        C0B948B48A2B8CF662938491 /* libPods-ConsumerSampleApp.a in Frameworks */,
+      );
+      runOnlyForDeploymentPostprocessing = 0;
+    };
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+    3B2C6CE524C0F52C00D2BEE8 = {
+      isa = PBXGroup;
+      children = (
+        3B2C6D2624C0F56E00D2BEE8 /* App */,
+        3B2C6CEF24C0F52C00D2BEE8 /* Products */,
+        4E477174CBD965B5F13782E9 /* Pods */,
+        EF09EB74E5BF832675CA498F /* Frameworks */,
+      );
+      sourceTree = "<group>";
+    };
+    3B2C6CEF24C0F52C00D2BEE8 /* Products */ = {
+      isa = PBXGroup;
+      children = (
+        3B2C6CEE24C0F52C00D2BEE8 /* ConsumerSampleApp.app */,
+      );
+      name = Products;
+      sourceTree = "<group>";
+    };
+    3B2C6D2624C0F56E00D2BEE8 /* App */ = {
+      isa = PBXGroup;
+      children = (
+        3B2C6D2724C0F56E00D2BEE8 /* GRSCBottomPanelView.h */,
+        3B2C6D2824C0F56E00D2BEE8 /* GRSCMapViewController.m */,
+        3B2C6D2924C0F56E00D2BEE8 /* GRSCProviderUtils.h */,
+        3B2C6D2A24C0F56E00D2BEE8 /* GRSCAuthToken.m */,
+        3B2C6D2B24C0F56E00D2BEE8 /* GRSCAppDelegate.m */,
+        3B2C6D2C24C0F56E00D2BEE8 /* GRSCStyle.m */,
+        3B2C6D2D24C0F56E00D2BEE8 /* GRSCWaypointSelector.h */,
+        3B2C6D2E24C0F56E00D2BEE8 /* GRSCProviderService.h */,
+        3B2C6D2F24C0F56E00D2BEE8 /* GRSCStringUtils.m */,
+        3B2C6D3024C0F56E00D2BEE8 /* GRSCAuthTokenProvider.h */,
+        3B2C6D3124C0F56E00D2BEE8 /* Assets.xcassets */,
+        3B2C6D3224C0F56E00D2BEE8 /* GRSCBottomPanelViewConstants.h */,
+        3B2C6D3324C0F56E00D2BEE8 /* LaunchScreen.storyboard */,
+        3B2C6D3524C0F56E00D2BEE8 /* GRSCProviderUtils.m */,
+        3B2C6D3624C0F56E00D2BEE8 /* GRSCMapViewController.h */,
+        3B2C6D3724C0F56E00D2BEE8 /* GRSCBottomPanelView.m */,
+        3B2C6D3824C0F56E00D2BEE8 /* main.m */,
+        3B2C6D3924C0F56E00D2BEE8 /* GRSCStyle.h */,
+        3B2C6D3A24C0F56E00D2BEE8 /* GRSCAppDelegate.h */,
+        3B2C6D3B24C0F56E00D2BEE8 /* GRSCAuthToken.h */,
+        3B2C6D3C24C0F56E00D2BEE8 /* GRSCAuthTokenProvider.m */,
+        3B2C6D3D24C0F56E00D2BEE8 /* GRSCStringUtils.h */,
+        3B2C6D3E24C0F56E00D2BEE8 /* GRSCProviderService.m */,
+        3B2C6D3F24C0F56E00D2BEE8 /* GRSCWaypointSelector.m */,
+        3B2C6D4024C0F56E00D2BEE8 /* GRSCBottomPanelViewConstants.m */,
+        3B2C6D4124C0F56E00D2BEE8 /* Info.plist */,
+      );
+      path = App;
+      sourceTree = "<group>";
+    };
+    4E477174CBD965B5F13782E9 /* Pods */ = {
+      isa = PBXGroup;
+      children = (
+        9873B096E90A52C3BF31D344 /* Pods-ConsumerSampleApp.debug.xcconfig */,
+        442100B9D331F93700F7C4DF /* Pods-ConsumerSampleApp.release.xcconfig */,
+      );
+      path = Pods;
+      sourceTree = "<group>";
+    };
+    EF09EB74E5BF832675CA498F /* Frameworks */ = {
+      isa = PBXGroup;
+      children = (
+        29CACA956BA65AB9016E8EFB /* libPods-ConsumerSampleApp.a */,
+      );
+      name = Frameworks;
+      sourceTree = "<group>";
+    };
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+    3B2C6CED24C0F52C00D2BEE8 /* ConsumerSampleApp */ = {
+      isa = PBXNativeTarget;
+      buildConfigurationList = 3B2C6D1D24C0F52D00D2BEE8 /* Build configuration list for PBXNativeTarget "ConsumerSampleApp" */;
+      buildPhases = (
+        82C3F704080DE844AA34ABD7 /* [CP] Check Pods Manifest.lock */,
+        3B2C6CEA24C0F52C00D2BEE8 /* Sources */,
+        3B2C6CEB24C0F52C00D2BEE8 /* Frameworks */,
+        3B2C6CEC24C0F52C00D2BEE8 /* Resources */,
+        A0E9001B2B344071776D08D4 /* [CP] Copy Pods Resources */,
+      );
+      buildRules = (
+      );
+      dependencies = (
+      );
+      name = ConsumerSampleApp;
+      productName = ConsumerSampleApp;
+      productReference = 3B2C6CEE24C0F52C00D2BEE8 /* ConsumerSampleApp.app */;
+      productType = "com.apple.product-type.application";
+    };
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+    3B2C6CE624C0F52C00D2BEE8 /* Project object */ = {
+      isa = PBXProject;
+      attributes = {
+        LastUpgradeCheck = 1130;
+        TargetAttributes = {
+          3B2C6CED24C0F52C00D2BEE8 = {
+            CreatedOnToolsVersion = 11.3.1;
+          };
+        };
+      };
+      buildConfigurationList = 3B2C6CE924C0F52C00D2BEE8 /* Build configuration list for PBXProject "ConsumerSampleApp" */;
+      compatibilityVersion = "Xcode 9.3";
+      developmentRegion = en;
+      hasScannedForEncodings = 0;
+      knownRegions = (
+        en,
+        Base,
+      );
+      mainGroup = 3B2C6CE524C0F52C00D2BEE8;
+      productRefGroup = 3B2C6CEF24C0F52C00D2BEE8 /* Products */;
+      projectDirPath = "";
+      projectRoot = "";
+      targets = (
+        3B2C6CED24C0F52C00D2BEE8 /* ConsumerSampleApp */,
+      );
+    };
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+    3B2C6CEC24C0F52C00D2BEE8 /* Resources */ = {
+      isa = PBXResourcesBuildPhase;
+      buildActionMask = 2147483647;
+      files = (
+        3B2C6D4724C0F56E00D2BEE8 /* Assets.xcassets in Resources */,
+        3B2C6D4824C0F56E00D2BEE8 /* LaunchScreen.storyboard in Resources */,
+      );
+      runOnlyForDeploymentPostprocessing = 0;
+    };
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+    82C3F704080DE844AA34ABD7 /* [CP] Check Pods Manifest.lock */ = {
+      isa = PBXShellScriptBuildPhase;
+      buildActionMask = 2147483647;
+      files = (
+      );
+      inputFileListPaths = (
+      );
+      inputPaths = (
+        "${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+        "${PODS_ROOT}/Manifest.lock",
+      );
+      name = "[CP] Check Pods Manifest.lock";
+      outputFileListPaths = (
+      );
+      outputPaths = (
+        "$(DERIVED_FILE_DIR)/Pods-ConsumerSampleApp-checkManifestLockResult.txt",
+      );
+      runOnlyForDeploymentPostprocessing = 0;
+      shellPath = /bin/sh;
+      shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+      showEnvVarsInLog = 0;
+    };
+    A0E9001B2B344071776D08D4 /* [CP] Copy Pods Resources */ = {
+      isa = PBXShellScriptBuildPhase;
+      buildActionMask = 2147483647;
+      files = (
+      );
+      inputFileListPaths = (
+        "${PODS_ROOT}/Target Support Files/Pods-ConsumerSampleApp/Pods-ConsumerSampleApp-resources-${CONFIGURATION}-input-files.xcfilelist",
+      );
+      name = "[CP] Copy Pods Resources";
+      outputFileListPaths = (
+        "${PODS_ROOT}/Target Support Files/Pods-ConsumerSampleApp/Pods-ConsumerSampleApp-resources-${CONFIGURATION}-output-files.xcfilelist",
+      );
+      runOnlyForDeploymentPostprocessing = 0;
+      shellPath = /bin/sh;
+      shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-ConsumerSampleApp/Pods-ConsumerSampleApp-resources.sh\"\n";
+      showEnvVarsInLog = 0;
+    };
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+    3B2C6CEA24C0F52C00D2BEE8 /* Sources */ = {
+      isa = PBXSourcesBuildPhase;
+      buildActionMask = 2147483647;
+      files = (
+        3B2C6D4C24C0F56E00D2BEE8 /* GRSCAuthTokenProvider.m in Sources */,
+        3B2C6D4D24C0F56E00D2BEE8 /* GRSCProviderService.m in Sources */,
+        3B2C6D4E24C0F56E00D2BEE8 /* GRSCWaypointSelector.m in Sources */,
+        3B2C6D4224C0F56E00D2BEE8 /* GRSCMapViewController.m in Sources */,
+        3B2C6D4F24C0F56E00D2BEE8 /* GRSCBottomPanelViewConstants.m in Sources */,
+        3B2C6D4624C0F56E00D2BEE8 /* GRSCStringUtils.m in Sources */,
+        3B2C6D4924C0F56E00D2BEE8 /* GRSCProviderUtils.m in Sources */,
+        3B2C6D4324C0F56E00D2BEE8 /* GRSCAuthToken.m in Sources */,
+        3B2C6D4524C0F56E00D2BEE8 /* GRSCStyle.m in Sources */,
+        3B2C6D4A24C0F56E00D2BEE8 /* GRSCBottomPanelView.m in Sources */,
+        3B2C6D4B24C0F56E00D2BEE8 /* main.m in Sources */,
+        3B2C6D4424C0F56E00D2BEE8 /* GRSCAppDelegate.m in Sources */,
+      );
+      runOnlyForDeploymentPostprocessing = 0;
+    };
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+    3B2C6D3324C0F56E00D2BEE8 /* LaunchScreen.storyboard */ = {
+      isa = PBXVariantGroup;
+      children = (
+        3B2C6D3424C0F56E00D2BEE8 /* Base */,
+      );
+      name = LaunchScreen.storyboard;
+      sourceTree = "<group>";
+    };
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+    3B2C6D1B24C0F52D00D2BEE8 /* Debug */ = {
+      isa = XCBuildConfiguration;
+      buildSettings = {
+        ALWAYS_SEARCH_USER_PATHS = NO;
+        CLANG_ANALYZER_NONNULL = YES;
+        CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+        CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+        CLANG_CXX_LIBRARY = "libc++";
+        CLANG_ENABLE_MODULES = YES;
+        CLANG_ENABLE_OBJC_ARC = YES;
+        CLANG_ENABLE_OBJC_WEAK = YES;
+        CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+        CLANG_WARN_BOOL_CONVERSION = YES;
+        CLANG_WARN_COMMA = YES;
+        CLANG_WARN_CONSTANT_CONVERSION = YES;
+        CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+        CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+        CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+        CLANG_WARN_EMPTY_BODY = YES;
+        CLANG_WARN_ENUM_CONVERSION = YES;
+        CLANG_WARN_INFINITE_RECURSION = YES;
+        CLANG_WARN_INT_CONVERSION = YES;
+        CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+        CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+        CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+        CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+        CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+        CLANG_WARN_STRICT_PROTOTYPES = YES;
+        CLANG_WARN_SUSPICIOUS_MOVE = YES;
+        CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+        CLANG_WARN_UNREACHABLE_CODE = YES;
+        CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+        COPY_PHASE_STRIP = NO;
+        DEBUG_INFORMATION_FORMAT = dwarf;
+        ENABLE_STRICT_OBJC_MSGSEND = YES;
+        ENABLE_TESTABILITY = YES;
+        GCC_C_LANGUAGE_STANDARD = gnu11;
+        GCC_DYNAMIC_NO_PIC = NO;
+        GCC_NO_COMMON_BLOCKS = YES;
+        GCC_OPTIMIZATION_LEVEL = 0;
+        GCC_PREPROCESSOR_DEFINITIONS = (
+          "DEBUG=1",
+          "$(inherited)",
+        );
+        GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+        GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+        GCC_WARN_UNDECLARED_SELECTOR = YES;
+        GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+        GCC_WARN_UNUSED_FUNCTION = YES;
+        GCC_WARN_UNUSED_VARIABLE = YES;
+        IPHONEOS_DEPLOYMENT_TARGET = 13.2;
+        MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+        MTL_FAST_MATH = YES;
+        ONLY_ACTIVE_ARCH = YES;
+        SDKROOT = iphoneos;
+      };
+      name = Debug;
+    };
+    3B2C6D1C24C0F52D00D2BEE8 /* Release */ = {
+      isa = XCBuildConfiguration;
+      buildSettings = {
+        ALWAYS_SEARCH_USER_PATHS = NO;
+        CLANG_ANALYZER_NONNULL = YES;
+        CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+        CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+        CLANG_CXX_LIBRARY = "libc++";
+        CLANG_ENABLE_MODULES = YES;
+        CLANG_ENABLE_OBJC_ARC = YES;
+        CLANG_ENABLE_OBJC_WEAK = YES;
+        CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+        CLANG_WARN_BOOL_CONVERSION = YES;
+        CLANG_WARN_COMMA = YES;
+        CLANG_WARN_CONSTANT_CONVERSION = YES;
+        CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+        CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+        CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+        CLANG_WARN_EMPTY_BODY = YES;
+        CLANG_WARN_ENUM_CONVERSION = YES;
+        CLANG_WARN_INFINITE_RECURSION = YES;
+        CLANG_WARN_INT_CONVERSION = YES;
+        CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+        CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+        CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+        CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+        CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+        CLANG_WARN_STRICT_PROTOTYPES = YES;
+        CLANG_WARN_SUSPICIOUS_MOVE = YES;
+        CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+        CLANG_WARN_UNREACHABLE_CODE = YES;
+        CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+        COPY_PHASE_STRIP = NO;
+        DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+        ENABLE_NS_ASSERTIONS = NO;
+        ENABLE_STRICT_OBJC_MSGSEND = YES;
+        GCC_C_LANGUAGE_STANDARD = gnu11;
+        GCC_NO_COMMON_BLOCKS = YES;
+        GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+        GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+        GCC_WARN_UNDECLARED_SELECTOR = YES;
+        GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+        GCC_WARN_UNUSED_FUNCTION = YES;
+        GCC_WARN_UNUSED_VARIABLE = YES;
+        IPHONEOS_DEPLOYMENT_TARGET = 13.2;
+        MTL_ENABLE_DEBUG_INFO = NO;
+        MTL_FAST_MATH = YES;
+        SDKROOT = iphoneos;
+        VALIDATE_PRODUCT = YES;
+      };
+      name = Release;
+    };
+    3B2C6D1E24C0F52D00D2BEE8 /* Debug */ = {
+      isa = XCBuildConfiguration;
+      baseConfigurationReference = 9873B096E90A52C3BF31D344 /* Pods-ConsumerSampleApp.debug.xcconfig */;
+      buildSettings = {
+        ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+        CODE_SIGN_STYLE = Automatic;
+        INFOPLIST_FILE = App/Info.plist;
+        LD_RUNPATH_SEARCH_PATHS = (
+          "$(inherited)",
+          "@executable_path/Frameworks",
+        );
+        PRODUCT_BUNDLE_IDENTIFIER = com.google.gmmsdk.ConsumerSampleApp;
+        PRODUCT_NAME = "$(TARGET_NAME)";
+        TARGETED_DEVICE_FAMILY = "1,2";
+      };
+      name = Debug;
+    };
+    3B2C6D1F24C0F52D00D2BEE8 /* Release */ = {
+      isa = XCBuildConfiguration;
+      baseConfigurationReference = 442100B9D331F93700F7C4DF /* Pods-ConsumerSampleApp.release.xcconfig */;
+      buildSettings = {
+        ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+        CODE_SIGN_STYLE = Automatic;
+        INFOPLIST_FILE = App/Info.plist;
+        LD_RUNPATH_SEARCH_PATHS = (
+          "$(inherited)",
+          "@executable_path/Frameworks",
+        );
+        PRODUCT_BUNDLE_IDENTIFIER = com.google.gmmsdk.ConsumerSampleApp;
+        PRODUCT_NAME = "$(TARGET_NAME)";
+        TARGETED_DEVICE_FAMILY = "1,2";
+      };
+      name = Release;
+    };
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+    3B2C6CE924C0F52C00D2BEE8 /* Build configuration list for PBXProject "ConsumerSampleApp" */ = {
+      isa = XCConfigurationList;
+      buildConfigurations = (
+        3B2C6D1B24C0F52D00D2BEE8 /* Debug */,
+        3B2C6D1C24C0F52D00D2BEE8 /* Release */,
+      );
+      defaultConfigurationIsVisible = 0;
+      defaultConfigurationName = Release;
+    };
+    3B2C6D1D24C0F52D00D2BEE8 /* Build configuration list for PBXNativeTarget "ConsumerSampleApp" */ = {
+      isa = XCConfigurationList;
+      buildConfigurations = (
+        3B2C6D1E24C0F52D00D2BEE8 /* Debug */,
+        3B2C6D1F24C0F52D00D2BEE8 /* Release */,
+      );
+      defaultConfigurationIsVisible = 0;
+      defaultConfigurationName = Release;
+    };
+/* End XCConfigurationList section */
+  };
+  rootObject = 3B2C6CE624C0F52C00D2BEE8 /* Project object */;
+}

@@ -1,0 +1,12 @@
+source 'https://github.com/CocoaPods/Specs.git'
+source "sso://cpdc-eap.googlesource.com/ridesharing-consumer-sdk"
+
+target 'ConsumerSampleApp' do
+  project 'ConsumerSampleApp'
+  platform :ios, '14.0'
+pod 'GoogleRidesharingConsumer'
+    target 'UnitTests' do
+        inherit! :search_paths
+        pod 'GoogleRidesharingConsumer'
+    end
+end

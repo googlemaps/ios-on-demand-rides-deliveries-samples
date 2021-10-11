@@ -1,0 +1,23 @@
+{
+  "images" : [
+    {
+      "filename" : "grc_ic_wait_pickup_marker.png",
+      "idiom" : "universal",
+      "scale" : "1x"
+    },
+    {
+      "filename" : "grc_ic_wait_pickup_marker@2x.png",
+      "idiom" : "universal",
+      "scale" : "2x"
+    },
+    {
+      "filename" : "grc_ic_wait_pickup_marker@3x.png",
+      "idiom" : "universal",
+      "scale" : "3x"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
