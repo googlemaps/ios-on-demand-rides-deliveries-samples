@@ -16,20 +16,13 @@
 import GoogleMaps
 import GoogleRidesharingConsumer
 
-// BEGIN_INTERNAL
-private let apiKey = "YOUR_API_KEY"
-private let providerID = "YOUR_PROVIDER_ID"
-// END_INTERNAL
-// EXTERNAL: #error("Register for API Key and insert here. Then delete this line.")
-// EXTERNAL: let apiKey = ""
-
 class AppDelegate: NSObject, UIApplicationDelegate {
   func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
-    GMSServices.provideAPIKey(apiKey)
-    GMTCServices.setAccessTokenProvider(AuthTokenProvider(), providerID: providerID)
+    GMSServices.provideAPIKey(APIConstants.mapsAPIKey)
+    GMTCServices.setAccessTokenProvider(AuthTokenProvider(), providerID: APIConstants.providerID)
     return true
   }
 }

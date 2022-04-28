@@ -26,10 +26,11 @@ class AuthTokenProvider: NSObject, GMTCAuthorization {
   }
 
   private enum AccessTokenError: Error {
+    case missingAuthorizationContext
     case missingData
     case missingURL
-    case missingAuthtokenContext
   }
+
   private static let tokenPath = "token/consumer/"
   private static let tokenKey = "jwt"
   private static let tokenExpirationKey = "expirationTimestamp"
@@ -42,7 +43,7 @@ class AuthTokenProvider: NSObject, GMTCAuthorization {
     completion: @escaping GMTCAuthTokenFetchCompletionHandler
   ) {
     guard let authorizationContext = authorizationContext else {
-      completion(nil, AccessTokenError.missingAuthtokenContext)
+      completion(nil, AccessTokenError.missingAuthorizationContext)
       return
     }
     let tripID = authorizationContext.tripID
@@ -55,7 +56,7 @@ class AuthTokenProvider: NSObject, GMTCAuthorization {
       return
     }
 
-    let tokenURL = ProviderUtils.providerURL(path: AuthTokenProvider.tokenPath)
+    let tokenURL = ProviderUtils.providerURL(path: Self.tokenPath)
     guard let tokenURLWithTripID = URL(string: tripID, relativeTo: tokenURL) else {
       completion(nil, AccessTokenError.missingURL)
       return
@@ -66,22 +67,18 @@ class AuthTokenProvider: NSObject, GMTCAuthorization {
       guard let strongSelf = self else { return }
       guard let data = data,
         let fetchData = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-        let token = fetchData[AuthTokenProvider.tokenKey] as? String,
-        let expirationInMilliseconds = fetchData[AuthTokenProvider.tokenExpirationKey] as? Int
+        let token = fetchData[Self.tokenKey] as? String,
+        let expirationInMilliseconds = fetchData[Self.tokenExpirationKey] as? Int
       else {
-        DispatchQueue.main.async {
-          completion(nil, AccessTokenError.missingData)
-        }
+        completion(nil, AccessTokenError.missingData)
         return
       }
 
-      DispatchQueue.main.async {
-        strongSelf.authToken = AuthToken(
-          token: token,
-          expiration: Double(expirationInMilliseconds) / 1000.0,
-          tripID: tripID)
-        completion(token, nil)
-      }
+      strongSelf.authToken = AuthToken(
+        token: token,
+        expiration: Double(expirationInMilliseconds) / 1000.0,
+        tripID: tripID)
+      completion(token, nil)
     }
     task.resume()
   }

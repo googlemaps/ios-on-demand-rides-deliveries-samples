@@ -52,24 +52,30 @@ After all prerequisites are met:
     to launch Xcode. From this time onwards, you must use the `.xcworkspace` file
     to open the project.
 
-##Add resources
+## Add resources
 
-1. Please add the `base.Iproj` file and sub files into the project if they are not linked automatically.
-
-2. In Xcode, open the project's Build Phases, and then within Copy Bundle Resources, and click on the plus sign button (+).
-   Click Add Other, and select the ride sharing framework.
-   From the ride sharing framework directory, select the following files:
-
-   * `gRPCCertificates.bundle` (not required if you are already using gRPC in your project).
-
-   Under Choose options for adding the files, check the Copy items if needed
+Please add the `base.Iproj` file and sub files into the project if they are not linked automatically.
 
 ## Code updating
 
 1. Follow the [Get an API key guide](https://developers.devsite.corp.google.com/maps/documentation/ios-sdk/get-api-key#add_key)
-   to add your API key to your app. Add a valid `kMapsAPIKey` in `GRSDAppDelegate.m` for both Consumer and Driver.
+   to add your Maps API key to your app.
 
-2. Add a valid `kProviderID` in `GRSDViewController.m` for both Consumer And Driver.
+   - For Swift, update `mapsAPIKey` in `APIConstants.swift` for both Consumer and
+     Driver.
+
+   - For Objective-C, update `kMapsAPIKey` in `GRSCAPIConstants.m` for the
+     Consumer app and in `GRSDAPIConstants.m` for the Driver app.
+
+2. Add the Provider ID to your app. The Provider ID is the Project ID of the
+   Google Cloud Project containing the service account used to call the Fleet
+   Engine APIs.
+
+   - For Swift, update `providerID` in `APIConstants.swift` for both Consumer and
+     Driver.
+
+   - For Objective-C, update `kProviderID` in `GRSCAPIConstants.m` for the
+     Consumer app and in `GRSDAPIConstants.m` for the Driver app.
 
 Then the project should run normally.
 

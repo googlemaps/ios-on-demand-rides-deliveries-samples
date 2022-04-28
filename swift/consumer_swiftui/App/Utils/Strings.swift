@@ -15,8 +15,8 @@
 
 import Foundation
 
-/// Constants that can be used in the sample app.
-struct Constants {
+/// Strings that can be used in the sample app.
+enum Strings {
   /// Control panel button text for the request ride state.
   static let controlPanelRequestRideButtonText = "REQUEST RIDE"
 
@@ -58,6 +58,12 @@ struct Constants {
 
   /// Text displayed on control panel state label for waiting for arrived at pickup state.
   static let arrivedAtPickupTitleText = "Driver is at pickup"
+
+  /// Text displayed on control panel state label for enroute to intermediate destination state.
+  static let enrouteToIntermediateDestinationTitleText = "Driving to intermediate stop"
+
+  /// Text displayed on control panel state label for arrived at intermediate destination state.
+  static let arrivedAtIntermediateDestinationTitleText = "Arrived at intermediate stop"
 
   /// Text displayed on control panel state label for waiting for enroute to dropoff state.
   static let enrouteToDropoffTitleText = "Driving to dropoff"

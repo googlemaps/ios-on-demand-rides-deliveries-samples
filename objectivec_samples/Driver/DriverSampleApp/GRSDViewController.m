@@ -18,14 +18,12 @@
 #import <CoreLocation/CoreLocation.h>
 
 #import <GoogleRidesharingDriver/GoogleRidesharingDriver.h>
+#import "GRSDAPIConstants.h"
 #import "GRSDBottomPanelView.h"
 #import "GRSDProviderService.h"
 
 /** Coordinates to be used for setting driver location when in simulator. */
 static const CLLocationCoordinate2D kSanFranciscoCoordinates = {37.7749295, -122.4194155};
-
-/** The fake provider ID. */
-static NSString *const kProviderID = @"YOUR_PROVIDER_ID";
 
 /** Enum representing all available trip states. */
 typedef NS_ENUM(NSInteger, GRSDTripState) {
@@ -84,6 +82,12 @@ static NSString *const kEnrouteToIntermediateDestinationButtonTitle =
     @"Arrived at intermediate stop";
 static NSString *const kCompletedTripPanelTitle = @"Trip completed";
 static NSString *const kCompletedTripButtonTitle = @"Trip completed";
+
+// Strings for the 'Driver creation' failed alert.
+static NSString *const kDriverCreationFailedAlertTitle = @"Unable to create vehicle";
+static NSString *const kDriverCreationFailedAlertDescription =
+    @"An error occured while connecting to the provider backend.";
+static NSString *const kDriverCreationFailedAlertRetryTitle = @"Retry";
 
 @implementation GRSDViewController {
   CLLocationManager *_locationManager;
@@ -267,9 +271,26 @@ static NSString *const kCompletedTripButtonTitle = @"Trip completed";
       // Set driver to be online so that it is visible for consumers.
       [_vehicleReporter updateVehicleState:GMTDVehicleStateOnline];
     } else {
-      NSAssert(NO, @"%s error creating driver.", __PRETTY_FUNCTION__);
+      [self promptToRetryDriverSetup];
     }
   }];
+}
+
+- (void)promptToRetryDriverSetup {
+  UIAlertController *alert =
+      [UIAlertController alertControllerWithTitle:kDriverCreationFailedAlertTitle
+                                          message:kDriverCreationFailedAlertDescription
+                                   preferredStyle:UIAlertControllerStyleAlert];
+
+  __weak typeof(self) weakSelf = self;
+  UIAlertAction *retryAction = [UIAlertAction actionWithTitle:kDriverCreationFailedAlertRetryTitle
+                                                        style:UIAlertActionStyleDefault
+                                                      handler:^(UIAlertAction *action) {
+                                                        [weakSelf setupDriver];
+                                                      }];
+  [alert addAction:retryAction];
+
+  [self presentViewController:alert animated:YES completion:nil];
 }
 
 - (void)createDriver:(GRSDCreateDriverHandler)completion {
@@ -289,10 +310,14 @@ static NSString *const kCompletedTripButtonTitle = @"Trip completed";
                             error:(NSError *)error
                        completion:(GRSDCreateDriverHandler)completion {
   if (error) {
+    NSLog(@"Failed to create vehicle: %@", error.localizedDescription);
     completion(NO);
+    return;
   }
+
   if (name.length == 0) {
     completion(NO);
+    return;
   }
 
   _currentVehicleID = name;
@@ -697,7 +722,8 @@ static NSString *const kCompletedTripButtonTitle = @"Trip completed";
   }
 }
 
-/* Pop the first waypoint from the list after arriving to a destination. Also stop the location simulator */
+/* Pop the first waypoint from the list after arriving to a destination. Also stop the location
+ * simulator */
 - (void)updateStateAfterDestinationArrival {
   // Upon arrival, remove the top waypoint from the list.
   // Waypoints are added in order so should never have the case where you remove the wrong waypoint.
@@ -749,7 +775,8 @@ static NSString *const kCompletedTripButtonTitle = @"Trip completed";
 #pragma mark - GMSNavigatorListener
 
 - (void)navigator:(GMSNavigator *)navigator didArriveAtWaypoint:(GMSNavigationWaypoint *)waypoint {
-    NSLog(@"GMSNavigatorListener - didArriveAtWaypoint: Latitude %f, Longitude %f", waypoint.coordinate.latitude, waypoint.coordinate.longitude);
+  NSLog(@"GMSNavigatorListener - didArriveAtWaypoint: Latitude %f, Longitude %f",
+        waypoint.coordinate.latitude, waypoint.coordinate.longitude);
 }
 
 @end

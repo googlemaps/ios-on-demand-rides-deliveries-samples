@@ -22,11 +22,8 @@ import SwiftUI
 final class ModelData: ObservableObject {
 
   enum CustomerState: String, Hashable, Codable {
-    /// Indicates that the `mapView` has not been initialized.
-    case unInitialized
-
-    /// Indicates that the `mapView` has been initialized.
-    case initialized
+    /// Indicates that the customer is not booking a trip and is not on any trip.
+    case initial
 
     /// Indicates that the customer is selecting their pickup location.
     case selectingPickup
@@ -82,8 +79,8 @@ final class ModelData: ObservableObject {
 
   /// Initializer for an empty `ModelData`.
   init() {
-    customerState = .initialized
-    controlButtonLabel = Constants.controlPanelRequestRideButtonText
+    customerState = .initial
+    controlButtonLabel = Strings.controlPanelRequestRideButtonText
     tripInfoLabel = ""
     staticLabel = ""
     tripID = ""

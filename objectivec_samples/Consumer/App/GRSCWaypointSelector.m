@@ -68,6 +68,7 @@ static NSString *const kIntermediateDestinationImageName = @"grc_ic_intermediate
   _dropoffSelectorView.translatesAutoresizingMaskIntoConstraints = NO;
   [_dropoffSelectorView.bottomAnchor constraintEqualToAnchor:_mapView.centerYAnchor].active = YES;
   [_dropoffSelectorView.centerXAnchor constraintEqualToAnchor:_mapView.centerXAnchor].active = YES;
+  [_selectedIntermediateDestinations removeAllObjects];
 }
 
 - (void)stopDropoffSelection {

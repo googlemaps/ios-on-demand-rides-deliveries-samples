@@ -54,9 +54,7 @@ final class MapCoordinator: NSObject, GMTCMapViewDelegate {
   /// Callback method from `GMSMapView` for tapping a location on `mapView`.
   func mapView(_ mapView: GMSMapView, idleAt position: GMSCameraPosition) {
     switch parent.modelData.customerState {
-    case .unInitialized:
-      break
-    case .initialized:
+    case .initial:
       break
     case .selectingPickup:
       if selectedMarker == nil {

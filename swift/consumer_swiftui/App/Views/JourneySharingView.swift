@@ -27,7 +27,6 @@ struct JourneySharingView: View {
     VStack(alignment: .center) {
       MapViewControllerBridge()
         .edgesIgnoringSafeArea(.all)
-        .environmentObject(modelData)
         .accessibilityIdentifier(JourneySharingView.mapViewIdentifier)
       ControlPanelView(
         tapButtonAction: tapButtonAction,
@@ -37,9 +36,7 @@ struct JourneySharingView: View {
 
   private func tapButtonAction() {
     switch modelData.customerState {
-    case .unInitialized:
-      break
-    case .initialized:
+    case .initial:
       startPickupSelection()
     case .selectingPickup:
       startDropoffSelection()
@@ -63,18 +60,19 @@ struct JourneySharingView: View {
 
   /// Updates UI elements and customer state when the user indicates pickup location.
   private func startPickupSelection() {
-    modelData.controlButtonLabel = Constants.controlPanelConfirmPickupButtonText
-    modelData.staticLabel = Constants.tripInfoViewStaticText
-    modelData.tripInfoLabel = Constants.selectPickupLocationText
+    modelData.controlButtonLabel = Strings.controlPanelConfirmPickupButtonText
+    modelData.staticLabel = Strings.tripInfoViewStaticText
+    modelData.tripInfoLabel = Strings.selectPickupLocationText
     modelData.customerState = .selectingPickup
   }
 
   /// Updates UI elements and customer state when the user indicates drop-off location.
   private func startDropoffSelection() {
-    modelData.controlButtonLabel = Constants.controlPanelConfirmDropoffButtonText
-    modelData.tripInfoLabel = Constants.selectDropoffLocationText
-    modelData.staticLabel = Constants.tripInfoViewStaticText
+    modelData.controlButtonLabel = Strings.controlPanelConfirmDropoffButtonText
+    modelData.tripInfoLabel = Strings.selectDropoffLocationText
+    modelData.staticLabel = Strings.tripInfoViewStaticText
     modelData.customerState = .selectingDropoff
+    modelData.intermediateDestinations.removeAll()
     NotificationCenter.default.post(
       name: .stateDidChange, object: MapViewController.selectDropoffNotificationObjectType,
       userInfo: nil)
@@ -83,7 +81,7 @@ struct JourneySharingView: View {
   /// Updates UI elements and customer state when the user previews the trip.
   private func startTripPreview() {
     modelData.staticLabel = ""
-    modelData.controlButtonLabel = Constants.controlPanelConfirmTripButtonText
+    modelData.controlButtonLabel = Strings.controlPanelConfirmTripButtonText
     modelData.customerState = .tripPreview
     modelData.tripInfoLabel = ""
     modelData.buttonColor = Color.green
@@ -107,7 +105,7 @@ struct JourneySharingView: View {
   }
 }
 
-struct SwiftUIView_Previews: PreviewProvider {
+struct JourneySharingView_Previews: PreviewProvider {
   static var previews: some View {
     JourneySharingView()
   }

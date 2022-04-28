@@ -22,8 +22,8 @@ struct ControlPanelView: View {
 
   /// The `ModelData` containing the primary state of the application.
   @EnvironmentObject var modelData: ModelData
-  private let tapButtonAction: (() -> Void)
-  private let tapAddIntermediateDestinationAction: (() -> Void)
+  private let tapButtonAction: () -> Void
+  private let tapAddIntermediateDestinationAction: () -> Void
 
   init(
     tapButtonAction: @escaping () -> Void, tapAddIntermediateDestinationAction: @escaping () -> Void
@@ -50,13 +50,13 @@ struct ControlPanelView: View {
             .frame(width: Style.frameWidth, height: Style.mediumFrameHeight, alignment: .topLeading)
           }
           if modelData.tripID != "" {
-            Text(Constants.tripIDText + modelData.tripID)
+            Text(Strings.tripIDText + modelData.tripID)
               .font(.system(size: Style.smallFontSize)).foregroundColor(Style.textColor)
               .frame(
                 width: Style.frameWidth, height: Style.mediumFrameHeight, alignment: .topLeading)
           }
           if modelData.vehicleID != "" {
-            Text(Constants.vehicleIDText + modelData.vehicleID)
+            Text(Strings.vehicleIDText + modelData.vehicleID)
               .font(.system(size: Style.smallFontSize))
               .foregroundColor(Style.textColor)
               .frame(
@@ -82,7 +82,7 @@ struct ControlPanelView: View {
 }
 
 /// The customized button style which includes the tap animation.
-struct StyledButton: ButtonStyle {
+private struct StyledButton: ButtonStyle {
   @EnvironmentObject var modelData: ModelData
   func makeBody(configuration: Configuration) -> some View {
     configuration
@@ -97,7 +97,7 @@ struct StyledButton: ButtonStyle {
   }
 }
 
-struct ControlPanelUI_Previews: PreviewProvider {
+struct ControlPanelView_Previews: PreviewProvider {
   static var previews: some View {
     ControlPanelView(tapButtonAction: {}, tapAddIntermediateDestinationAction: {})
   }

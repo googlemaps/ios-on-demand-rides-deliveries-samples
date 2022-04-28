@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		5F55A7691E0B8A608C48B42A /* Pods_DriverSampleApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8E40FEA95095E3CA92A9618D /* Pods_DriverSampleApp.framework */; };
+		EE05992127067ED700605B6C /* GRSDAPIConstants.m in Sources */ = {isa = PBXBuildFile; fileRef = EE05992327067ED700605B6C /* GRSDAPIConstants.m */; };
 		EE05993227067ED700605B6C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EE05992427067ED700605B6C /* Assets.xcassets */; };
 		EE05993327067ED700605B6C /* GRSDViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = EE05992727067ED700605B6C /* GRSDViewController.m */; };
 		EE05993427067ED700605B6C /* GRSDAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = EE05992827067ED700605B6C /* GRSDAppDelegate.m */; };
@@ -15,14 +16,14 @@
 		EE05993627067ED700605B6C /* GRSDProviderService.m in Sources */ = {isa = PBXBuildFile; fileRef = EE05992A27067ED700605B6C /* GRSDProviderService.m */; };
 		EE05993727067ED700605B6C /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = EE05992C27067ED700605B6C /* LaunchScreen.storyboard */; };
 		EE05993827067ED700605B6C /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = EE05992F27067ED700605B6C /* main.m */; };
-		EE0599422706849600605B6C /* gRPCCertificates.bundle in Frameworks */ = {isa = PBXBuildFile; fileRef = EE0599412706849600605B6C /* gRPCCertificates.bundle */; };
-		EE059944270684D900605B6C /* gRPCCertificates.bundle in Resources */ = {isa = PBXBuildFile; fileRef = EE0599412706849600605B6C /* gRPCCertificates.bundle */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		7C199D2A21A269F476D3EA65 /* Pods-DriverSampleApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-DriverSampleApp.release.xcconfig"; path = "Target Support Files/Pods-DriverSampleApp/Pods-DriverSampleApp.release.xcconfig"; sourceTree = "<group>"; };
 		8E40FEA95095E3CA92A9618D /* Pods_DriverSampleApp.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_DriverSampleApp.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		EE05990627067E8E00605B6C /* DriverSampleApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DriverSampleApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		EE05992227067ED700605B6C /* GRSDAPIConstants.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GRSDAPIConstants.h; sourceTree = "<group>"; };
+		EE05992327067ED700605B6C /* GRSDAPIConstants.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GRSDAPIConstants.m; sourceTree = "<group>"; };
 		EE05992427067ED700605B6C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		EE05992527067ED700605B6C /* GRSDBottomPanelView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GRSDBottomPanelView.h; sourceTree = "<group>"; };
 		EE05992627067ED700605B6C /* GRSDProviderService.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GRSDProviderService.h; sourceTree = "<group>"; };
@@ -35,7 +36,6 @@
 		EE05992F27067ED700605B6C /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		EE05993027067ED700605B6C /* GRSDViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GRSDViewController.h; sourceTree = "<group>"; };
 		EE05993127067ED700605B6C /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		EE0599412706849600605B6C /* gRPCCertificates.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; name = gRPCCertificates.bundle; path = DriverSampleApp/gRPCCertificates.bundle; sourceTree = "<group>"; };
 		F29A53B947C7C2B8AAFD64CE /* Pods-DriverSampleApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-DriverSampleApp.debug.xcconfig"; path = "Target Support Files/Pods-DriverSampleApp/Pods-DriverSampleApp.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -44,7 +44,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EE0599422706849600605B6C /* gRPCCertificates.bundle in Frameworks */,
 				5F55A7691E0B8A608C48B42A /* Pods_DriverSampleApp.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -64,7 +63,6 @@
 		664FECC2E2B75585C81DF716 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				EE0599412706849600605B6C /* gRPCCertificates.bundle */,
 				8E40FEA95095E3CA92A9618D /* Pods_DriverSampleApp.framework */,
 			);
 			name = Frameworks;
@@ -93,6 +91,8 @@
 			children = (
 				EE05992427067ED700605B6C /* Assets.xcassets */,
 				EE05992B27067ED700605B6C /* Base.lproj */,
+				EE05992227067ED700605B6C /* GRSDAPIConstants.h */,
+				EE05992327067ED700605B6C /* GRSDAPIConstants.m */,
 				EE05992E27067ED700605B6C /* GRSDAppDelegate.h */,
 				EE05992827067ED700605B6C /* GRSDAppDelegate.m */,
 				EE05992527067ED700605B6C /* GRSDBottomPanelView.h */,
@@ -174,7 +174,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EE059944270684D900605B6C /* gRPCCertificates.bundle in Resources */,
 				EE05993227067ED700605B6C /* Assets.xcassets in Resources */,
 				EE05993727067ED700605B6C /* LaunchScreen.storyboard in Resources */,
 			);
@@ -231,6 +230,7 @@
 			files = (
 				EE05993827067ED700605B6C /* main.m in Sources */,
 				EE05993627067ED700605B6C /* GRSDProviderService.m in Sources */,
+				EE05992127067ED700605B6C /* GRSDAPIConstants.m in Sources */,
 				EE05993427067ED700605B6C /* GRSDAppDelegate.m in Sources */,
 				EE05993527067ED700605B6C /* GRSDBottomPanelView.m in Sources */,
 				EE05993327067ED700605B6C /* GRSDViewController.m in Sources */,
