@@ -13,21 +13,8 @@
  * permissions and limitations under the License.
  */
 
-import SwiftUI
+#import "GRSDAPIConstants.h"
 
-@available(iOS 13.0.0, *)
-struct ContentView: View {
-  @EnvironmentObject var modelData: ModelData
+NSString *const kMapsAPIKey = @"YOUR_API_KEY";
 
-  var body: some View {
-    JourneySharingView()
-      .environmentObject(modelData)
-  }
-}
-
-@available(iOS 13.0.0, *)
-struct ContentView_Previews: PreviewProvider {
-  static var previews: some View {
-    ContentView()
-  }
-}
+NSString *const kProviderID = @"YOUR_PROVIDER_ID";

@@ -18,9 +18,8 @@
 #import <GoogleMaps/GoogleMaps.h>
 
 #import <GoogleRidesharingDriver/GoogleRidesharingDriver.h>
+#import "GRSDAPIConstants.h"
 #import "GRSDViewController.h"
-
-static NSString *const kMapsAPIKey = @"YOUR_API_KEY";
 
 @implementation GRSDAppDelegate
 

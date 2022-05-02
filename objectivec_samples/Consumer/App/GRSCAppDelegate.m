@@ -16,20 +16,18 @@
 #import "GRSCAppDelegate.h"
 
 #import <GoogleRidesharingConsumer/GoogleRidesharingConsumer.h>
+#import "GRSCAPIConstants.h"
 #import "GRSCAuthTokenProvider.h"
 #import "GRSCMapViewController.h"
-
-static NSString *const kAPIKey = @"YOUR_API_KEY";
-static NSString *const kProviderId = @"YOUR_PROVIDER_ID";
 
 @implementation GRSCAppDelegate
 
 - (BOOL)application:(UIApplication *)application
     didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-  [GMSServices provideAPIKey:kAPIKey];
+  [GMSServices provideAPIKey:kMapsAPIKey];
 
   [GMTCServices setAccessTokenProvider:[[GRSCAuthTokenProvider alloc] init]
-                           providerID:kProviderId];
+                            providerID:kProviderID];
 
   self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
   GRSCMapViewController *mapviewControler = [[GRSCMapViewController alloc] init];

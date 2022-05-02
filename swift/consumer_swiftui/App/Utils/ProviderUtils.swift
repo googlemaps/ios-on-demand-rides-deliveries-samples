@@ -16,11 +16,11 @@
 import Foundation
 import GoogleRidesharingConsumer
 
-/// Helper methods for `ProviderServer` and `AuthTokenProvider`.
-class ProviderUtils {
+/// Helper methods for `ProviderService` and `AuthTokenProvider`.
+enum ProviderUtils {
 
   /// Base provider URL Strings.
-  static let baseProviderURLString = "http://localhost:8080"
+  private static let baseProviderURLString = "http://localhost:8080"
 
   static func providerURL(path: String) -> URL {
     let baseProviderURL = URL(string: baseProviderURLString)
@@ -47,10 +47,6 @@ class ProviderUtils {
   static func formattedParameterOfArrayOfTerminalLocations(locations: [GMTSTerminalLocation])
     -> [[String: Double]]
   {
-    var formattedDictionary: [[String: Double]] = []
-    for location in locations {
-      formattedDictionary.append(formattedParameterOfTerminalLocation(location: location))
-    }
-    return formattedDictionary
+    return locations.map { formattedParameterOfTerminalLocation(location: $0) }
   }
 }

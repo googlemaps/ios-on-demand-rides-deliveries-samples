@@ -50,9 +50,15 @@ typealias CreateTripCompletionHandler = (String?, Error?) -> Void
 typealias CancelTripCompletionHandler = (Error?) -> Void
 
 /// A service that provides POST and PUT requests to your server.
-class ProviderService: NSObject {
+class ProviderService {
+
+  enum Error: Swift.Error {
+    case missingData
+    case missingURL
+  }
 
   private let session: URLSession
+
   init(session: URLSession = .shared) {
     self.session = session
   }
@@ -80,29 +86,16 @@ class ProviderService: NSObject {
     let request = getJSONRequest(
       url: requestURL, payloadDict: payloadDict, method: RPCConstants.httpMethodPOST)
 
-    let sessionTask = session.dataTask(with: request) {
-      data, response, error in
-      if error != nil {
-        completion(
-          nil,
-          NSError(domain: "Received invalid vehicle match result", code: 1001, userInfo: nil)
-        )
+    let sessionTask = session.dataTask(with: request) { data, _, error in
+      guard error == nil else {
+        completion(nil, error)
         return
       }
-      guard let data = data else {
-        completion(nil, NSError(domain: "Received empty data", code: 1000, userInfo: nil))
-        return
-      }
-      guard
-        let parsedDictionary = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+      guard let data = data,
+        let parsedDictionary = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+        let tripName = parsedDictionary[RPCConstants.tripNameKey] as? String
       else {
-        completion(
-          nil,
-          NSError(domain: "Parsing dictionary failed.", code: 1000, userInfo: nil)
-        )
-        return
-      }
-      guard let tripName = parsedDictionary[RPCConstants.tripNameKey] as? String else {
+        completion(nil, Error.missingData)
         return
       }
       completion(tripName, nil)
@@ -112,10 +105,8 @@ class ProviderService: NSObject {
 
   /// Cancels an existing trip.
   func cancelTrip(tripID: String, completion: @escaping CancelTripCompletionHandler) {
-    guard
-      let requestURL = getProviderUpdateTripStatusURL(tripID: tripID)
-    else {
-      completion(nil)
+    guard let requestURL = getProviderUpdateTripStatusURL(tripID: tripID) else {
+      completion(Error.missingURL)
       return
     }
     let payloadDict =
@@ -124,12 +115,9 @@ class ProviderService: NSObject {
       ] as [String: Any]
     let request = getJSONRequest(
       url: requestURL, payloadDict: payloadDict, method: RPCConstants.httpMethodPUT)
-    let sessionTask = session.dataTask(
-      with: request,
-      completionHandler: { data, response, error in
-        completion(error)
-      }
-    )
+    let sessionTask = session.dataTask(with: request) { _, _, error in
+      completion(error)
+    }
     sessionTask.resume()
   }
 

@@ -21,14 +21,8 @@ enum Style {
   /// The length for the element frame width.
   static let frameWidth = UIScreen.main.bounds.width * 0.8
 
-  /// Small height for the element frame.
-  static let smallFrameHeight = 20.0
-
   /// Medium height for the element frame.
   static let mediumFrameHeight = 35.0
-
-  /// Large height for the element frame.
-  static let largeFrameHeight = 60.0
 
   /// Font size for small content.
   static let smallFontSize = 14.0
@@ -37,8 +31,22 @@ enum Style {
   static let mediumFontSize = 18.0
 
   /// Light color for static text.
-  static let textColor = Color.init(red: 117 / 255, green: 117 / 255, blue: 117 / 255)
+  static let textColor = Color(red: 117 / 255, green: 117 / 255, blue: 117 / 255)
 
   /// Color for default state in buttons
-  static let buttonBackgroundColor = Color.init(red: 113 / 255, green: 131 / 255, blue: 148 / 255)
+  static let buttonBackgroundColor = Color(red: 113 / 255, green: 131 / 255, blue: 148 / 255)
+
+  /// Color for normal traffic speed type.
+  static let trafficPolylineSpeedTypeNormalColor = UIColor(
+    red: 44 / 255, green: 153 / 255, blue: 255 / 255, alpha: 1)
+
+  /// Color for slow traffic speed type.
+  static let trafficPolylineSpeedTypeSlowColor = UIColor.yellow
+
+  /// Color for traffic jam speed type.
+  static let trafficPolylineSpeedTypeTrafficJamColor = UIColor.red
+
+  /// Color for no-data speed type.
+  static let trafficPolylineSpeedTypeNoDataColor = UIColor.gray
+
 }

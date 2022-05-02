@@ -29,9 +29,6 @@ class MapViewController: UIViewController, GMTCTripModelSubscriber {
   /// Notification object type when cancelling a trip.
   static let cancelTripNotificationObjectType = "cancelTrip"
 
-  /// Notification object type when adding a new intermediate destination to current trip.
-  static let addIntermediatDestinationNotificationObjectType = "addIntermediateDestination"
-
   /// Conversion constant from seconds to minutes.
   private static let secondsPerMinute = 60.0
 
@@ -47,7 +44,7 @@ class MapViewController: UIViewController, GMTCTripModelSubscriber {
   /// The `ModelData` containing the primary state of the application.
   private let modelData: ModelData
 
-  // MARK - MapView variables
+  // MARK: - MapView variables
 
   var mapView: GMTCMapView {
     return self.uiView
@@ -62,13 +59,13 @@ class MapViewController: UIViewController, GMTCTripModelSubscriber {
   private var journeySharingSession: GMTCJourneySharingSession?
 
   private lazy var uiView: GMTCMapView = {
-    let uiView = GMTCMapView.init(frame: CGRect.zero)
+    let uiView = GMTCMapView(frame: CGRect.zero)
     uiView.camera = .sanFrancisco
     uiView.translatesAutoresizingMaskIntoConstraints = false
     return uiView
   }()
 
-  // MARK - Current trip variables
+  // MARK: - Current trip variables
 
   private var tripName: String = ""
 
@@ -84,7 +81,7 @@ class MapViewController: UIViewController, GMTCTripModelSubscriber {
   }
 
   required init?(coder: NSCoder) {
-    return nil
+    fatalError("init(coder:) has not been implemented")
   }
 
   override func loadView() {
@@ -92,10 +89,25 @@ class MapViewController: UIViewController, GMTCTripModelSubscriber {
     pickupMarker = GMSMarker()
     pickupMarker.icon = UIImage(named: MapViewController.pickupMarkerIconName)
     previousTripDropoffMarker = GMSMarker()
+    setPolylineCustomization()
     self.view = uiView
   }
 
-  // MARK - Requests to server methods
+  private func setPolylineCustomization() {
+    let consumerMapStyleCoordinator = mapView.consumerMapStyleCoordinator
+    let polylineOptions = GMTCMutablePolylineStyleOptions()
+
+    polylineOptions.isTrafficEnabled = true
+    polylineOptions.setTrafficColorFor(.normal, color: Style.trafficPolylineSpeedTypeNormalColor)
+    polylineOptions.setTrafficColorFor(.slow, color: Style.trafficPolylineSpeedTypeSlowColor)
+    polylineOptions.setTrafficColorFor(
+      .trafficJam, color: Style.trafficPolylineSpeedTypeTrafficJamColor)
+    polylineOptions.setTrafficColorFor(.noData, color: Style.trafficPolylineSpeedTypeNoDataColor)
+
+    consumerMapStyleCoordinator.setPolylineStyleOptions(polylineOptions, polylineType: .activeRoute)
+  }
+
+  // MARK: - Requests to server methods
 
   /// Creates a new trip when receiving "Book Trip" notification.
   private func bookTrip() {
@@ -110,7 +122,7 @@ class MapViewController: UIViewController, GMTCTripModelSubscriber {
         strongSelf.setActiveTrip(tripName: currentTripName)
       }
     }
-    modelData.buttonColor = Color.green
+    modelData.buttonColor = .green
   }
 
   /// Cancels a trip when receiving "Cancel Trip" notification.
@@ -122,7 +134,7 @@ class MapViewController: UIViewController, GMTCTripModelSubscriber {
         let tripService = GMTCServices.shared().tripService
         let tripModel = tripService.tripModel(forTripName: strongSelf.tripName)
         tripModel?.unregisterSubscriber(strongSelf)
-        strongSelf.modelData.customerState = .initialized
+        strongSelf.modelData.customerState = .initial
         guard let currentJourneySharingSession = strongSelf.journeySharingSession else { return }
         strongSelf.uiView.hide(currentJourneySharingSession)
         strongSelf.resetPanelView()
@@ -130,7 +142,7 @@ class MapViewController: UIViewController, GMTCTripModelSubscriber {
     }
   }
 
-  // MARK - Control panel update methods
+  // MARK: - Control panel update methods
 
   /// Resets labels on the `ControlPanelView`.
   private func resetPanelView() {
@@ -138,8 +150,8 @@ class MapViewController: UIViewController, GMTCTripModelSubscriber {
     modelData.remainingDistanceInMeters = 0
     modelData.tripID = ""
     modelData.vehicleID = ""
-    modelData.tripInfoLabel = Constants.controlPanelRequestRideButtonText
-    modelData.controlButtonLabel = Constants.controlPanelRequestRideButtonText
+    modelData.tripInfoLabel = Strings.controlPanelRequestRideButtonText
+    modelData.controlButtonLabel = Strings.controlPanelRequestRideButtonText
   }
 
   /// Removes pickup marker on `mapView`.
@@ -160,7 +172,7 @@ class MapViewController: UIViewController, GMTCTripModelSubscriber {
     self.tripName = tripName
     let tripService = GMTCServices.shared().tripService
     guard let tripModel = tripService.tripModel(forTripName: tripName) else { return }
-    tripModel.register(_: self)
+    tripModel.register(self)
     self.journeySharingSession = GMTCJourneySharingSession(tripModel: tripModel)
     guard let currentJourneysharingSession = self.journeySharingSession else { return }
     self.uiView.show(currentJourneysharingSession)
@@ -176,32 +188,34 @@ class MapViewController: UIViewController, GMTCTripModelSubscriber {
     modelData.tripID = tripID
   }
 
-  // MARK - GMTCTripModelSubscriber
+  // MARK: - GMTCTripModelSubscriber
 
   func tripModel(_ tripModel: GMTCTripModel, didUpdate tripStatus: GMTSTripStatus) {
     switch tripStatus {
     case .new:
       resetMarkers()
-      modelData.tripInfoLabel = Constants.waitingForDriverMatchTitleText
-      modelData.controlButtonLabel = Constants.controlPanelCancelTripButtonText
+      modelData.tripInfoLabel = Strings.waitingForDriverMatchTitleText
+      modelData.controlButtonLabel = Strings.controlPanelCancelTripButtonText
       modelData.buttonColor = Style.buttonBackgroundColor
       updateTripInfo()
     case .enrouteToPickup:
       resetMarkers()
-      modelData.tripInfoLabel = Constants.enrouteToPickupTitleText
+      modelData.tripInfoLabel = Strings.enrouteToPickupTitleText
       updateTripInfo()
     case .arrivedAtPickup:
-      modelData.tripInfoLabel = Constants.arrivedAtPickupTitleText
+      modelData.tripInfoLabel = Strings.arrivedAtPickupTitleText
       updateTripInfo()
     case .enrouteToIntermediateDestination:
-      break
+      modelData.tripInfoLabel = Strings.enrouteToIntermediateDestinationTitleText
+      updateTripInfo()
     case .arrivedAtIntermediateDestination:
-      break
+      modelData.tripInfoLabel = Strings.arrivedAtIntermediateDestinationTitleText
+      updateTripInfo()
     case .enrouteToDropoff:
-      modelData.tripInfoLabel = Constants.enrouteToDropoffTitleText
+      modelData.tripInfoLabel = Strings.enrouteToDropoffTitleText
       updateTripInfo()
     case .complete:
-      modelData.tripInfoLabel = Constants.tripCompleteTitleText
+      modelData.tripInfoLabel = Strings.tripCompleteTitleText
       updateTripInfo()
       modelData.controlButtonLabel = ""
       resetMarkers()
@@ -211,7 +225,7 @@ class MapViewController: UIViewController, GMTCTripModelSubscriber {
         let tripService = GMTCServices.shared().tripService
         let tripModel = tripService.tripModel(forTripName: strongSelf.tripName)
         tripModel?.unregisterSubscriber(strongSelf)
-        strongSelf.modelData.customerState = .initialized
+        strongSelf.modelData.customerState = .initial
         guard let currentJourneySharingSession = strongSelf.journeySharingSession else { return }
         strongSelf.uiView.hide(currentJourneySharingSession)
         strongSelf.resetPanelView()
@@ -258,13 +272,12 @@ class MapViewController: UIViewController, GMTCTripModelSubscriber {
       guard let latitude = currentTripWaypoint.location?.point?.latitude else { return }
       guard let longitude = currentTripWaypoint.location?.point?.longitude else { return }
       previousTripDropoffMarker.position = CLLocationCoordinate2D(
-        latitude: latitude,
-        longitude: longitude)
-      modelData.tripInfoLabel = Constants.completeLastTripTitleText
+        latitude: latitude, longitude: longitude)
+      modelData.tripInfoLabel = Strings.completeLastTripTitleText
     }
   }
 
-  // MARK - Notification control center
+  // MARK: - Notification control center
 
   @objc private func consumerStateUpdate(notification: Notification) {
     guard let updateConsumerState = notification.object as? String else { return }
@@ -273,8 +286,7 @@ class MapViewController: UIViewController, GMTCTripModelSubscriber {
       guard let latitude = modelData.pickupLocation.point?.latitude else { return }
       guard let longitude = modelData.pickupLocation.point?.longitude else { return }
       pickupMarker.position = CLLocationCoordinate2D(
-        latitude: latitude,
-        longitude: longitude)
+        latitude: latitude, longitude: longitude)
     } else if updateConsumerState == MapViewController.bookTripNotificationObjectType {
       bookTrip()
     } else if updateConsumerState == MapViewController.cancelTripNotificationObjectType {
@@ -291,8 +303,7 @@ class MapViewController: UIViewController, GMTCTripModelSubscriber {
       guard let latitude = intermediateDestination.point?.latitude else { return }
       guard let longitude = intermediateDestination.point?.longitude else { return }
       intermediateMarker.position = CLLocationCoordinate2D(
-        latitude: latitude,
-        longitude: longitude)
+        latitude: latitude, longitude: longitude)
       intermediateDestinationMarkers.append(intermediateMarker)
     }
   }

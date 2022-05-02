@@ -1,6 +1,6 @@
+source 'https://cpdc-eap.googlesource.com/ridesharing-consumer-sdk'
 source 'https://github.com/CocoaPods/Specs.git'
-source "https://cpdc-eap.googlesource.com/ridesharing-consumer-sdk"
 
 target 'ConsumerSampleApp' do
-pod 'GoogleRidesharingConsumer'
+  pod 'GoogleRidesharingConsumer'
 end

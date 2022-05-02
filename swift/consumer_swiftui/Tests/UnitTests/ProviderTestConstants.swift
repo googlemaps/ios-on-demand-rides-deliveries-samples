@@ -17,7 +17,7 @@ import Foundation
 import GoogleRidesharingConsumer
 
 /// Constants that can be used in the unit test.
-struct ProviderTestConstants {
+enum ProviderTestConstants {
   /// Longitude for testing location.
   static let longitude: Double = -122.4194
 

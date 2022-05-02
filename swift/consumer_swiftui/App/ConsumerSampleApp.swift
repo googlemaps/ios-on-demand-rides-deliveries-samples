@@ -13,10 +13,7 @@
  * permissions and limitations under the License.
  */
 
-import GoogleMaps
 import SwiftUI
-
-@available(iOS 14.0, *)
 
 @main
 struct ConsumerSampleApp: App {
