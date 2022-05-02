@@ -1,14 +1,13 @@
-On-Demand Rides and Deliveries iOS Samples
-============
+# On-Demand Rides and Deliveries iOS Samples
 
-Included samples
-------------
+This repository contains source code of the following samples.
 
-This repository contains binaries of the following samples
-
-1. Driver SDK sample (written in Objective-C) in `/objectivec_samples/driver` directory.
-2. Consumer SDK samples (written in Objective-C) in `/objectivec_samples/consumer` directory.
-
+1. Driver SDK sample, available in two languages:
+   - Swift: in `swift/driver_swiftui` directory.
+   - Objective-C: in `objectivec_samples/Driver` directory.
+2. Consumer SDK sample, available in two languages:
+   - Swift: in `swift/consumer_swiftui` directory.
+   - Objective-C: in `objectivec_samples/Consumer` directory.
 
 You can use the following guide to build and run a basic consumer and driver app integrated with the On-demand Rides and Deliveries Solution backend services. After completing this guide, you should have an app that can display an active trip, respond to trip updates, and handle trip errors.
 
@@ -42,45 +41,40 @@ After all prerequisites are met:
     cd <path-to-project>
     ```
 
-2.  Run the `pod install` command. This will install the pods specified in the
-    Podfile, along with any dependencies they may have.
+1.  Run the `pod install` command. This installs the pods specified in the
+    Podfile, along with any dependencies they have.
 
     ```shell
     pod install
     ```
-3.  Close Xcode, and then open (double-click) your project's `.xcworkspace` file
+
+1.  Close Xcode, and then open (double-click) your project's `.xcworkspace` file
     to launch Xcode. From this time onwards, you must use the `.xcworkspace` file
-    to open the project.
+    to open the project, *not* the `.xcodeproj` file.
 
-## Add resources
+1.  Follow the
+    [Get an API key guide](https://developers.devsite.corp.google.com/maps/documentation/ios-sdk/get-api-key#add_key)
+    to add your Maps API key to your app.
 
-Please add the `base.Iproj` file and sub files into the project if they are not linked automatically.
+    - For Swift, update `mapsAPIKey` in `APIConstants.swift` for both Consumer
+      and Driver.
 
-## Code updating
+    - For Objective-C, update `kMapsAPIKey` in `GRSCAPIConstants.m` for the
+      Consumer app and in `GRSDAPIConstants.m` for the Driver app.
 
-1. Follow the [Get an API key guide](https://developers.devsite.corp.google.com/maps/documentation/ios-sdk/get-api-key#add_key)
-   to add your Maps API key to your app.
+1.  Add the Provider ID to your app. The Provider ID is the Project ID of the
+    Google Cloud Project that contains the service account used to call the
+    Fleet Engine APIs.
 
-   - For Swift, update `mapsAPIKey` in `APIConstants.swift` for both Consumer and
-     Driver.
+    - For Swift, update `providerID` in `APIConstants.swift` for both Consumer
+      and Driver.
 
-   - For Objective-C, update `kMapsAPIKey` in `GRSCAPIConstants.m` for the
-     Consumer app and in `GRSDAPIConstants.m` for the Driver app.
-
-2. Add the Provider ID to your app. The Provider ID is the Project ID of the
-   Google Cloud Project containing the service account used to call the Fleet
-   Engine APIs.
-
-   - For Swift, update `providerID` in `APIConstants.swift` for both Consumer and
-     Driver.
-
-   - For Objective-C, update `kProviderID` in `GRSCAPIConstants.m` for the
-     Consumer app and in `GRSDAPIConstants.m` for the Driver app.
+    - For Objective-C, update `kProviderID` in `GRSCAPIConstants.m` for the
+      Consumer app and in `GRSDAPIConstants.m` for the Driver app.
 
 Then the project should run normally.
 
-License
--------
+## License
 
 ```
 Copyright 2021 Google, Inc.
