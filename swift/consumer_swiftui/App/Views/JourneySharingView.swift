@@ -64,6 +64,9 @@ struct JourneySharingView: View {
     modelData.staticLabel = Strings.tripInfoViewStaticText
     modelData.tripInfoLabel = Strings.selectPickupLocationText
     modelData.customerState = .selectingPickup
+    NotificationCenter.default.post(
+      name: .stateDidChange, object: MapViewController.selectPickupNotificationObjectType,
+      userInfo: nil)
   }
 
   /// Updates UI elements and customer state when the user indicates drop-off location.

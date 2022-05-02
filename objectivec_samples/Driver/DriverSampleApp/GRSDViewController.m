@@ -83,8 +83,14 @@ static NSString *const kEnrouteToIntermediateDestinationButtonTitle =
 static NSString *const kCompletedTripPanelTitle = @"Trip completed";
 static NSString *const kCompletedTripButtonTitle = @"Trip completed";
 
+// Strings for the 'Terms And Conditions Not Accepted' alert.
+static NSString *const kTermsAndConditionsDeniedAlertTitle = @"Terms And Conditions Not Accepted";
+static NSString *const kTermsAndConditionsDeniedAlertDescription =
+    @"The terms and conditions must be accepted in order to use the app.";
+static NSString *const kTermsAndConditionsDeniedAlertOKTitle = @"OK";
+
 // Strings for the 'Driver creation' failed alert.
-static NSString *const kDriverCreationFailedAlertTitle = @"Unable to create vehicle";
+static NSString *const kDriverCreationFailedAlertTitle = @"Unable to Create Vehicle";
 static NSString *const kDriverCreationFailedAlertDescription =
     @"An error occured while connecting to the provider backend.";
 static NSString *const kDriverCreationFailedAlertRetryTitle = @"Retry";
@@ -127,11 +133,7 @@ static NSString *const kDriverCreationFailedAlertRetryTitle = @"Retry";
   [self setUpLayoutAnchors];
   [self setUpContentStackView];
   [self setUpMapView];
-  [self showTermsAndConditions:^(BOOL termsAccepted) {
-    if (termsAccepted) {
-      [self setupDriver];
-    }
-  }];
+  [self showTermsAndConditionsAndSetUpDriver];
 }
 
 - (void)viewDidDisappear:(BOOL)animated {
@@ -220,7 +222,7 @@ static NSString *const kDriverCreationFailedAlertRetryTitle = @"Retry";
   [_contentStackView addArrangedSubview:_bottomPanel];
 }
 
-- (void)showTermsAndConditions:(GMSTermsResponseCallback)completion {
+- (void)showTermsAndConditionsAndSetUpDriver {
   // Show the dialog for the Terms and Conditions and only enable navigation after the user’s
   // acceptance.
   __weak typeof(self) weakSelf = self;
@@ -228,27 +230,26 @@ static NSString *const kDriverCreationFailedAlertRetryTitle = @"Retry";
   GMSTermsResponseCallback termsAndConditionsCallback = ^(BOOL termsAccepted) {
     typeof(self) strongSelf = weakSelf;
     if (!strongSelf) {
-      completion(NO);
+      return;
     }
     if (!termsAccepted) {
-      // Optional: Show a warning dialog to the user explaining that terms need to be accepted in
-      // order to use the app.
-      completion(NO);
+      [strongSelf showTermsAndConditionsDeniedAlert];
+      return;
     }
     GMSMapView *mapView = strongSelf->_mapView;
     // Enable navigation only after the user has accepted the Terms and Conditions.
+    // Both navigator and roadSnappedLocationProvider return nil if the user has not
+    // accepted the Terms and Conditions dialog.
     mapView.navigationEnabled = YES;
     mapView.cameraMode = GMSNavigationCameraModeFollowing;
     mapView.settings.compassButton = YES;
     mapView.navigator.sendsBackgroundNotifications = YES;
 
-    // Warning: both navigator and roadSnappedLocationProvider return nil if the user has not
-    // accepted the Terms and Conditions dialog. The sample logic only assumes the user has accepted
-    // the dialog.
     [mapView.roadSnappedLocationProvider addListener:strongSelf];
     [mapView.navigator addListener:strongSelf];
     mapView.roadSnappedLocationProvider.allowsBackgroundLocationUpdates = YES;
-    completion(YES);
+
+    [strongSelf setUpDriver];
   };
 
   [GMSNavigationServices
@@ -256,7 +257,25 @@ static NSString *const kDriverCreationFailedAlertRetryTitle = @"Retry";
                                                  callback:termsAndConditionsCallback];
 }
 
-- (void)setupDriver {
+- (void)showTermsAndConditionsDeniedAlert {
+  // Show a warning dialog to the user explaining that the terms and conditions need to be accepted
+  // in order to use the app.
+  UIAlertController *alert =
+      [UIAlertController alertControllerWithTitle:kTermsAndConditionsDeniedAlertTitle
+                                          message:kTermsAndConditionsDeniedAlertDescription
+                                   preferredStyle:UIAlertControllerStyleAlert];
+  __weak typeof(self) weakSelf = self;
+  UIAlertAction *okAction =
+      [UIAlertAction actionWithTitle:kTermsAndConditionsDeniedAlertOKTitle
+                               style:UIAlertActionStyleDefault
+                             handler:^(UIAlertAction *action) {
+                               [weakSelf showTermsAndConditionsAndSetUpDriver];
+                             }];
+  [alert addAction:okAction];
+  [self presentViewController:alert animated:YES completion:nil];
+}
+
+- (void)setUpDriver {
   // Simulate the driver location at a fixed coordinate.
   // Note: The locationSimulator allows the user location to be simulated for testing purposes, and
   // references to it should be removed before testing this app in the real world.
@@ -286,7 +305,7 @@ static NSString *const kDriverCreationFailedAlertRetryTitle = @"Retry";
   UIAlertAction *retryAction = [UIAlertAction actionWithTitle:kDriverCreationFailedAlertRetryTitle
                                                         style:UIAlertActionStyleDefault
                                                       handler:^(UIAlertAction *action) {
-                                                        [weakSelf setupDriver];
+                                                        [weakSelf setUpDriver];
                                                       }];
   [alert addAction:retryAction];
 
