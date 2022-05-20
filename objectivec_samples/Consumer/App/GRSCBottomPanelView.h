@@ -48,7 +48,7 @@
 @interface GRSCBottomPanelView : UIView
 
 /** The delegate to receive events on UI elements.  */
-@property(nonatomic, weak) id<GRSCBottomPanelDelegate> delegate;
+@property(nonatomic, weak, nullable) id<GRSCBottomPanelDelegate> delegate;
 
 /** Button that appears on the bottom of the panel.  */
 @property(nonatomic, strong, readonly, nonnull) UIButton *actionButton;

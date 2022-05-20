@@ -80,15 +80,15 @@ static UILabel *CreateUILabel(void) {
   self = [super init];
 
   if (self) {
-    super.backgroundColor = UIColor.whiteColor;
-    super.translatesAutoresizingMaskIntoConstraints = NO;
+    self.backgroundColor = UIColor.whiteColor;
+    self.translatesAutoresizingMaskIntoConstraints = NO;
     _actionButton = CreateActionButton();
     _actionButton.translatesAutoresizingMaskIntoConstraints = NO;
     [self addSubview:_actionButton];
-    [_actionButton.widthAnchor constraintEqualToAnchor:super.widthAnchor multiplier:.85].active =
+    [_actionButton.widthAnchor constraintEqualToAnchor:self.widthAnchor multiplier:.85].active =
         YES;
-    [_actionButton.centerXAnchor constraintEqualToAnchor:super.centerXAnchor].active = YES;
-    [_actionButton.bottomAnchor constraintEqualToAnchor:super.bottomAnchor constant:-50].active =
+    [_actionButton.centerXAnchor constraintEqualToAnchor:self.centerXAnchor].active = YES;
+    [_actionButton.bottomAnchor constraintEqualToAnchor:self.bottomAnchor constant:-50].active =
         YES;
     [_actionButton addTarget:self
                       action:@selector(didTapActionButton:)

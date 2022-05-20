@@ -119,35 +119,38 @@ class MapViewController: UIViewController, GMTCMapViewDelegate, GMTCTripModelSub
 
   /// Creates a new trip when receiving "Book Trip" notification.
   private func bookTrip() {
-    let providerService = ProviderService()
-    providerService.createTrip(
-      pickupLocation: modelData.pickupLocation, dropoffLocation: modelData.dropoffLocation,
-      intermediateDestinations: modelData.intermediateDestinations
-    ) { [weak self] tripName, error in
-      DispatchQueue.main.async {
-        guard let strongSelf = self, let currentTripName = tripName, error == nil else { return }
-        strongSelf.modelData.customerState = .booking
-        strongSelf.setActiveTrip(tripName: currentTripName)
+    Task {
+      let providerService = ProviderService()
+      guard
+        let tripName = try? await providerService.createTrip(
+          pickupLocation: modelData.pickupLocation, dropoffLocation: modelData.dropoffLocation,
+          intermediateDestinations: modelData.intermediateDestinations
+        )
+      else {
+        return
       }
+      modelData.customerState = .booking
+      setActiveTrip(tripName: tripName)
+      modelData.buttonColor = .green
     }
-    modelData.buttonColor = .green
   }
 
   /// Cancels a trip when receiving "Cancel Trip" notification.
   private func cancelTrip() {
-    let providerService = ProviderService()
-    providerService.cancelTrip(tripID: modelData.tripID) { [weak self] error in
-      DispatchQueue.main.async {
-        guard let strongSelf = self, error == nil else { return }
-        let tripService = GMTCServices.shared().tripService
-        let tripModel = tripService.tripModel(forTripName: strongSelf.tripName)
-        tripModel?.unregisterSubscriber(strongSelf)
-        strongSelf.modelData.customerState = .initial
-        guard let currentJourneySharingSession = strongSelf.journeySharingSession else { return }
-        strongSelf.uiView.hide(currentJourneySharingSession)
-        strongSelf.resetPanelView()
-        strongSelf.resetMarkers()
+    Task {
+      let providerService = ProviderService()
+      do {
+        try await providerService.cancelTrip(tripID: modelData.tripID)
+      } catch {
+        return
       }
+      let tripService = GMTCServices.shared().tripService
+      let tripModel = tripService.tripModel(forTripName: tripName)
+      tripModel?.unregisterSubscriber(self)
+      modelData.customerState = .initial
+      guard let currentJourneySharingSession = journeySharingSession else { return }
+      uiView.hide(currentJourneySharingSession)
+      resetPanelView()
     }
   }
 

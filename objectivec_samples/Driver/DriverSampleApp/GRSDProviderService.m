@@ -65,7 +65,7 @@ NSString *const GRSDProviderServiceTripStatusArrivedAtIntermediateDestination =
 
 // Provider waypoint types
 static NSString *const kProviderWaypointTypePickup = @"PICKUP_WAYPOINT_TYPE";
-static NSString *const kProviderWaypointTypeDropoff = @"DROPOFF_WAYPOINT_TYPE";
+static NSString *const kProviderWaypointTypeDropoff = @"DROP_OFF_WAYPOINT_TYPE";
 static NSString *const kProviderWaypointTypeIntermediateDestination =
     @"INTERMEDIATE_DESTINATION_WAYPOINT_TYPE";
 
@@ -235,15 +235,15 @@ static GMTSTripWaypointType GetTripWaypointTypeFromString(NSString *waypointType
     }
 
     // Get vehicle name from response.
-    NSString *fullVehicleName = jsonResponse[kProviderDataKeyName];
+    NSString *vehicleName = jsonResponse[kProviderDataKeyName];
     // Provider returns fully qualified vehicle name in this form:
-    // 'providers/providerID/vehicles/name', so strip vehicle name from it.
-    NSString *vehicleName = [fullVehicleName componentsSeparatedByString:@"/"].lastObject;
-    if (!vehicleName) {
+    // 'providers/providerID/vehicles/vehicleID'. So strip provider ID from it.
+    NSString *vehicleID = [vehicleName componentsSeparatedByString:@"/"].lastObject;
+    if (!vehicleID) {
       completion(nil, GRSDError(kProviderErrorCode, kInvalidVehicleNameDescription));
       return;
     }
-    completion(vehicleName, nil);
+    completion(vehicleID, nil);
   }
 }
 

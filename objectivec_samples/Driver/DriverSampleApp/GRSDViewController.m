@@ -1,17 +1,17 @@
 /*
-* Copyright 2020 Google LLC. All rights reserved.
-*
-*
-* Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
-* file except in compliance with the License. You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software distributed under
-* the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
-* ANY KIND, either express or implied. See the License for the specific language governing
-* permissions and limitations under the License.
-*/
+ * Copyright 2020 Google LLC. All rights reserved.
+ *
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
+ * file except in compliance with the License. You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under
+ * the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
+ * ANY KIND, either express or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ */
 
 #import "GRSDViewController.h"
 
@@ -106,14 +106,12 @@ static NSString *const kDriverCreationFailedAlertRetryTitle = @"Retry";
   GRSDProviderService *_providerService;
   NSString *_currentVehicleID;
   GMTDVehicleReporter *_vehicleReporter;
-  NSLayoutYAxisAnchor *_topAnchor;
   NSTimer *_pollFetchVehicleTimer;
-  BOOL _fetchVehicleInProgress;
+  BOOL _isFetchVehicleInProgress;
   NSMutableArray<GMTSTripWaypoint *> *_waypoints;
   NSString *_currentTripID;
   GRSDTripState _currentTripState;
   BOOL _isVehicleOnline;
-  NSTimer *_startPollingForTripTimer;
   NSUInteger _currentIntermediateDestinationIndex;
   NSString *_backToBackNextTripID;
 }
@@ -130,7 +128,6 @@ static NSString *const kDriverCreationFailedAlertRetryTitle = @"Retry";
   _providerService = [[GRSDProviderService alloc] init];
 
   [self setUpNavigationBar];
-  [self setUpLayoutAnchors];
   [self setUpContentStackView];
   [self setUpMapView];
   [self showTermsAndConditionsAndSetUpDriver];
@@ -164,26 +161,14 @@ static NSString *const kDriverCreationFailedAlertRetryTitle = @"Retry";
   self.navigationController.navigationBar.barStyle = UIBarStyleBlack;
 }
 
-- (void)setUpLayoutAnchors {
-  UIView *view = self.view;
-  if (@available(iOS 11.0, *)) {
-    // If iOS 11.0 is available, use the safe area layout guide's top anchor to set the top anchor
-    // of the map view.
-    _topAnchor = view.safeAreaLayoutGuide.topAnchor;
-  } else {
-    // Fall back to top layout guide's bottom anchor for earlier iOS versions since
-    // safeAreaLayoutGuide isn't available.
-    _topAnchor = self.topLayoutGuide.bottomAnchor;
-  }
-}
-
 - (void)setUpContentStackView {
   // Stack view that hold the map and bottom panel.
   _contentStackView = [[UIStackView alloc] init];
   _contentStackView.translatesAutoresizingMaskIntoConstraints = NO;
   _contentStackView.axis = UILayoutConstraintAxisVertical;
   [self.view addSubview:_contentStackView];
-  [_contentStackView.topAnchor constraintEqualToAnchor:_topAnchor].active = YES;
+  [_contentStackView.topAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor]
+      .active = YES;
   [_contentStackView.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor].active = YES;
   [_contentStackView.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor].active = YES;
   [_contentStackView.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor].active = YES;
@@ -283,14 +268,19 @@ static NSString *const kDriverCreationFailedAlertRetryTitle = @"Retry";
 
   _isVehicleOnline = NO;
 
+  __weak typeof(self) weakSelf = self;
   [self createDriver:^(BOOL driverCreated) {
+    typeof(self) strongSelf = weakSelf;
+    if (!strongSelf) {
+      return;
+    }
     if (driverCreated) {
       // Enable location tracking for the driver.
-      _vehicleReporter.locationTrackingEnabled = YES;
+      strongSelf->_vehicleReporter.locationTrackingEnabled = YES;
       // Set driver to be online so that it is visible for consumers.
-      [_vehicleReporter updateVehicleState:GMTDVehicleStateOnline];
+      [strongSelf->_vehicleReporter updateVehicleState:GMTDVehicleStateOnline];
     } else {
-      [self promptToRetryDriverSetup];
+      [strongSelf promptToRetryDriverSetup];
     }
   }];
 }
@@ -318,14 +308,14 @@ static NSString *const kDriverCreationFailedAlertRetryTitle = @"Retry";
   // Create a vehicle with b2b support enabled by default.
   [_providerService createVehicleWithID:randomVehicleID
                     isBackToBackEnabled:YES
-                             completion:^(NSString *_Nullable name, NSError *_Nullable error) {
-                               [weakSelf handleCreateVehicleWithID:name
+                             completion:^(NSString *_Nullable vehicleID, NSError *_Nullable error) {
+                               [weakSelf handleCreateVehicleWithID:vehicleID
                                                              error:error
                                                         completion:completion];
                              }];
 }
 
-- (void)handleCreateVehicleWithID:(NSString *)name
+- (void)handleCreateVehicleWithID:(NSString *)vehicleID
                             error:(NSError *)error
                        completion:(GRSDCreateDriverHandler)completion {
   if (error) {
@@ -334,24 +324,25 @@ static NSString *const kDriverCreationFailedAlertRetryTitle = @"Retry";
     return;
   }
 
-  if (name.length == 0) {
+  if (vehicleID.length == 0) {
     completion(NO);
     return;
   }
 
-  _currentVehicleID = name;
-  self.title = [NSString stringWithFormat:@"Vehicle ID: %@", name];
+  _currentVehicleID = vehicleID;
+  self.title = [NSString stringWithFormat:@"Vehicle ID: %@", vehicleID];
 
   // Set up Driver SDK.
   GRSDProviderService *providerService = _providerService;
   if (!providerService) {
     completion(NO);
+    return;
   }
 
   GMTDDriverContext *driverContext =
       [[GMTDDriverContext alloc] initWithAccessTokenProvider:providerService
                                                   providerID:kProviderID
-                                                   vehicleID:name
+                                                   vehicleID:vehicleID
                                                    navigator:_mapView.navigator];
   GMTDRidesharingDriverAPI *driverAPI =
       [[GMTDRidesharingDriverAPI alloc] initWithDriverContext:driverContext];
@@ -380,7 +371,7 @@ static NSString *const kDriverCreationFailedAlertRetryTitle = @"Retry";
 /* Fetches details for the current vehicle ID. */
 - (void)fetchVehicle {
   // If there's a fetch vehicle request in flight, cancel this one.
-  if (_fetchVehicleInProgress) {
+  if (_isFetchVehicleInProgress) {
     return;
   }
 
@@ -390,7 +381,7 @@ static NSString *const kDriverCreationFailedAlertRetryTitle = @"Retry";
     return;
   }
 
-  _fetchVehicleInProgress = YES;
+  _isFetchVehicleInProgress = YES;
 
   __weak typeof(self) weakSelf = self;
   [_providerService fetchVehicleWithID:_currentVehicleID
@@ -404,7 +395,7 @@ static NSString *const kDriverCreationFailedAlertRetryTitle = @"Retry";
 /* Handles a response from a fetchVehicle provider request. */
 - (void)handleFetchVehicleResponseWithMatchedTripIds:(NSArray<NSString *> *)matchedTripIDs
                                                error:(NSError *)error {
-  _fetchVehicleInProgress = NO;
+  _isFetchVehicleInProgress = NO;
   if (error || !matchedTripIDs || !matchedTripIDs.count) {
     // Keep polling if there are no trips found for this vehicle.
     return;
@@ -453,13 +444,17 @@ static NSString *const kDriverCreationFailedAlertRetryTitle = @"Retry";
                              NSLog(@"Failed to get trip details with error: %@", error);
                              return;
                            }
-                           _waypoints = [waypoints mutableCopy];
-                           [weakSelf displayNewTrip];
-                           [weakSelf setNextWaypointAsTheDestination];
+                           [weakSelf handleFetchTripWithWaypoints:waypoints];
                          }];
 
   // Reset intermediate destinations index.
   _currentIntermediateDestinationIndex = 0;
+}
+
+- (void)handleFetchTripWithWaypoints:(NSArray<GMTSTripWaypoint *> *)waypoints {
+  _waypoints = [waypoints mutableCopy];
+  [self displayNewTrip];
+  [self setNextWaypointAsTheDestination];
 }
 
 /* Sets the next navigation destination to the first available waypoint. */
@@ -560,19 +555,17 @@ static NSString *const kDriverCreationFailedAlertRetryTitle = @"Retry";
     } else {
       // Wait 5 seconds to start polling for a new trip.
       // Note: This timer is optional and it's used in this app for demonstration purposes.
-      _startPollingForTripTimer =
-          [NSTimer scheduledTimerWithTimeInterval:5
-                                           target:self
-                                         selector:@selector(startPollingForTrip)
-                                         userInfo:nil
-                                          repeats:NO];
+      [NSTimer scheduledTimerWithTimeInterval:5
+                                       target:self
+                                     selector:@selector(startPollingForTrip)
+                                     userInfo:nil
+                                      repeats:NO];
     }
   }
 }
 
 - (void)startPollingForTrip {
   _currentTripID = nil;
-  _startPollingForTripTimer = nil;
   _backToBackNextTripID = nil;
 
   // Hide bottom panel while driver waits for a new trip.
