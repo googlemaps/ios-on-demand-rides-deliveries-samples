@@ -64,18 +64,6 @@ enum ProviderTripStatus: String {
   case complete = "COMPLETE"
 }
 
-/// Completion handler type definition for the createVehicle process.
-typealias CreateVehicleCompletionHandler = (String?, Error?) -> Void
-
-/// Completion handler type definition for the getVehicle process.
-typealias GetVehicleCompletionHandler = ([String]?, Error?) -> Void
-
-/// Completion handler type definition for the getTrip process.
-typealias GetTripCompletionHandler = (ProviderTripStatus?, [GMTSTripWaypoint]?, Error?) -> Void
-
-/// Completion handler type definition for the updateTrip process.
-typealias UpdateTripCompletionHandler = (Error?) -> Void
-
 /// A service that sends requests and receives responses from the provider backend.
 class ProviderService {
 
@@ -92,10 +80,7 @@ class ProviderService {
   }
 
   /// Creates a vehicle with the specified back-to-back option.
-  func createVehicle(
-    vehicleID: String, isBackToBackEnabled: Bool,
-    completion: @escaping CreateVehicleCompletionHandler
-  ) {
+  func createVehicle(vehicleID: String, isBackToBackEnabled: Bool) async throws -> String {
     let requestURL = ProviderUtils.providerURL(path: RPCConstants.providerCreateVehicleURLPath)
     let payloadDict: [String: Any] =
       [
@@ -105,110 +90,63 @@ class ProviderService {
 
     let request = Self.makeJSONRequest(
       url: requestURL, payloadDict: payloadDict, method: RPCConstants.httpMethodPOST)
-    let sessionTask = session.dataTask(with: request) { data, _, error in
-      guard error == nil else {
-        DispatchQueue.main.async {
-          completion(nil, error)
-        }
-        return
-      }
-      guard let data = data,
-        let parsedDictionary = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-        let vehicleName = parsedDictionary[RPCConstants.nameKey] as? String
-      else {
-        DispatchQueue.main.async {
-          completion(nil, Error.missingData)
-        }
-        return
-      }
-
-      // Provider returns fully qualified vehicle name in this form:
-      // 'providers/providerID/vehicles/vehicleID'. So strip the prefix from it.
-      guard let vehicleID = vehicleName.components(separatedBy: "/").last else {
-        DispatchQueue.main.async {
-          completion(nil, Error.invalidVehicleName)
-        }
-        return
-      }
-
-      DispatchQueue.main.async {
-        completion(vehicleID, nil)
-      }
+    let (data, _) = try await session.data(for: request, delegate: nil)
+    guard let parsedDictionary = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+      let vehicleName = parsedDictionary[RPCConstants.nameKey] as? String
+    else {
+      throw Error.missingData
     }
-    sessionTask.resume()
+
+    // Provider returns fully qualified vehicle name in this form:
+    // 'providers/providerID/vehicles/vehicleID'. So strip the prefix from it.
+    guard let vehicleID = vehicleName.components(separatedBy: "/").last else {
+      throw Error.invalidVehicleName
+    }
+
+    return vehicleID
   }
 
   /// Returns the current trip IDs that are matched with a vehicle.
-  func getVehicle(vehicleID: String, completion: @escaping GetVehicleCompletionHandler) {
+  func getVehicle(vehicleID: String) async throws -> [String] {
     guard let requestURL = Self.makeGetVehicleURL(vehicleID: vehicleID) else {
-      completion(nil, Error.missingURL)
-      return
+      throw Error.missingURL
     }
-    let sessionTask = session.dataTask(with: requestURL) { data, _, error in
-      guard error == nil else {
-        DispatchQueue.main.async {
-          completion(nil, error)
-        }
-        return
-      }
-      guard let data = data,
-        let parsedDictionary = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-        let currentTripsIDs = parsedDictionary[RPCConstants.currentTripsIDsKey] as? [String]
-      else {
-        DispatchQueue.main.async {
-          completion(nil, Error.missingData)
-        }
-        return
-      }
-      DispatchQueue.main.async {
-        completion(currentTripsIDs, nil)
-      }
+    let (data, _) = try await session.data(from: requestURL, delegate: nil)
+
+    guard let parsedDictionary = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+      let currentTripsIDs = parsedDictionary[RPCConstants.currentTripsIDsKey] as? [String]
+    else {
+      throw Error.missingData
     }
-    sessionTask.resume()
+    return currentTripsIDs
   }
 
   /// Returns the trip status and waypoints of a trip.
-  func getTrip(tripID: String, completion: @escaping GetTripCompletionHandler) {
+  func getTrip(tripID: String) async throws -> (ProviderTripStatus, [GMTSTripWaypoint]) {
     guard let requestURL = Self.makeGetTripURL(tripID: tripID) else {
-      completion(nil, nil, Error.missingURL)
-      return
+      throw Error.missingURL
     }
-    let sessionTask = session.dataTask(with: requestURL) { data, _, error in
-      guard error == nil else {
-        DispatchQueue.main.async {
-          completion(nil, nil, error)
-        }
-        return
-      }
-      guard let data = data,
-        let parsedDictionary = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-        let tripJSON = parsedDictionary[RPCConstants.tripKey] as? [String: Any],
-        let tripStatusString = tripJSON[RPCConstants.tripStatusKey] as? String,
-        let tripStatus = ProviderTripStatus(rawValue: tripStatusString),
-        let waypointsJSON = tripJSON[RPCConstants.waypointsKey] as? [[String: Any]],
-        let waypoints =
-          try? waypointsJSON.map({ try Self.makeWaypoint(waypointJSON: $0, tripID: tripID) })
-      else {
-        DispatchQueue.main.async {
-          completion(nil, nil, Error.missingData)
-        }
-        return
-      }
-      DispatchQueue.main.async {
-        completion(tripStatus, waypoints, nil)
-      }
+    let (data, _) = try await session.data(from: requestURL)
+    guard
+      let parsedDictionary = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+      let tripJSON = parsedDictionary[RPCConstants.tripKey] as? [String: Any],
+      let tripStatusString = tripJSON[RPCConstants.tripStatusKey] as? String,
+      let tripStatus = ProviderTripStatus(rawValue: tripStatusString),
+      let waypointsJSON = tripJSON[RPCConstants.waypointsKey] as? [[String: Any]],
+      let waypoints =
+        try? waypointsJSON.map({ try Self.makeWaypoint(waypointJSON: $0, tripID: tripID) })
+    else {
+      throw Error.missingData
     }
-    sessionTask.resume()
+    return (tripStatus, waypoints)
   }
 
   /// Updates the trip status and optionally the intermediate destination index of a trip.
   func updateTrip(
-    tripID: String, status: ProviderTripStatus, intermediateDestinationIndex: Int?,
-    completion: @escaping UpdateTripCompletionHandler
-  ) {
+    tripID: String, status: ProviderTripStatus, intermediateDestinationIndex: Int?
+  ) async throws {
     guard let requestURL = Self.makeUpdateTripURL(tripID: tripID) else {
-      completion(Error.missingURL)
-      return
+      throw Error.missingURL
     }
     var payloadDict: [String: Any] = [RPCConstants.statusKey: status.rawValue]
     if let intermediateDestinationIndex = intermediateDestinationIndex {
@@ -217,12 +155,8 @@ class ProviderService {
 
     let request = Self.makeJSONRequest(
       url: requestURL, payloadDict: payloadDict, method: RPCConstants.httpMethodPUT)
-    let sessionTask = session.dataTask(with: request) { _, _, error in
-      DispatchQueue.main.async {
-        completion(error)
-      }
-    }
-    sessionTask.resume()
+
+    let _ = try await session.data(for: request, delegate: nil)
   }
 
   /// Creates a `GMTSTripWaypoint` from a waypoint JSON returned by the provider backend.

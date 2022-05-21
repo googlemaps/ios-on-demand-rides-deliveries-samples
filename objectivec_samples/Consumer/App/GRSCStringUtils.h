@@ -35,7 +35,7 @@ NSAttributedString *_Nonnull GRSCGetPartlyBoldAttributedString(NSString *_Nonnul
 /**
  * Creates a string representation of the ETA from given distance and time to arrival.
  *
- * @param timeStamp The interval representing the timestamp to arrival in seconds.
+ * @param timestamp The interval representing the timestamp to arrival in seconds.
  * @param distance The distance from the destination in meters.
  *
  * @return Formatted string composed of the time and distance in ETA format. Time in minutes

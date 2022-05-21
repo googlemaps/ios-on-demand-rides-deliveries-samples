@@ -44,18 +44,16 @@ class ProviderServiceTests: XCTestCase {
     "pickup": ["latitude": 37.7749, "longitude": -122.4194],
   ]
 
-  var urlSession: URLSession!
-  var expectation: XCTestExpectation!
-  var url = URL(string: ProviderTestConstants.apiURL)!
+  private var urlSession: URLSession!
+  private let url = URL(string: ProviderTestConstants.apiURL)!
 
   override func setUp() {
     let configuration = URLSessionConfiguration.ephemeral
     configuration.protocolClasses = [MockURLProtocol.self]
     urlSession = URLSession(configuration: configuration)
-    expectation = expectation(description: "Expectation")
   }
 
-  func testCreateTripWithIntermediateDestinationsSuccessfully() {
+  func testCreateTripWithIntermediateDestinationsSuccessfully() async throws {
     let providerService = ProviderService(session: urlSession)
     let jsonString = """
       {
@@ -73,22 +71,18 @@ class ProviderServiceTests: XCTestCase {
       return (response, data)
     }
 
-    providerService.createTrip(
+    let tripName = try await providerService.createTrip(
       pickupLocation: pickupLocation, dropoffLocation: dropoffLocation,
       intermediateDestinations: [intermediateDestination]
-    ) { tripName, error in
-      let jsonBody = mostRecentRequest?.bodyStreamAsJSON() as? NSDictionary
-      XCTAssertEqual(jsonBody, self.expectedHttpbodyWithIntermediateDestinations)
-      XCTAssertEqual(mostRecentRequest?.url, URL(string: self.expectedURL))
-      XCTAssertEqual(mostRecentRequest?.httpMethod, self.expectedHttpMethod)
-      XCTAssertEqual(tripName, self.expectedTripName)
-      XCTAssertNil(error)
-      self.expectation.fulfill()
-    }
-    wait(for: [self.expectation], timeout: 1.0)
+    )
+    let jsonBody = mostRecentRequest?.bodyStreamAsJSON() as? NSDictionary
+    XCTAssertEqual(jsonBody, expectedHttpbodyWithIntermediateDestinations)
+    XCTAssertEqual(mostRecentRequest?.url, URL(string: expectedURL))
+    XCTAssertEqual(mostRecentRequest?.httpMethod, expectedHttpMethod)
+    XCTAssertEqual(tripName, expectedTripName)
   }
 
-  func testCreateTripWithoutIntermediateDestinationsSuccessfully() {
+  func testCreateTripWithoutIntermediateDestinationsSuccessfully() async throws {
     let providerService = ProviderService(session: urlSession)
     let jsonString = """
       {
@@ -106,22 +100,18 @@ class ProviderServiceTests: XCTestCase {
       return (response, data)
     }
 
-    providerService.createTrip(
+    let tripName = try await providerService.createTrip(
       pickupLocation: pickupLocation, dropoffLocation: dropoffLocation,
       intermediateDestinations: []
-    ) { tripName, error in
-      let jsonBody = mostRecentRequest?.bodyStreamAsJSON() as? NSDictionary
-      XCTAssertEqual(jsonBody, self.expectedHttpbodyWithoutIntermediateDestinations)
-      XCTAssertEqual(mostRecentRequest?.url, URL(string: self.expectedURL))
-      XCTAssertEqual(mostRecentRequest?.httpMethod, self.expectedHttpMethod)
-      XCTAssertEqual(tripName, self.expectedTripName)
-      XCTAssertNil(error)
-      self.expectation.fulfill()
-    }
-    wait(for: [self.expectation], timeout: 1.0)
+    )
+    let jsonBody = mostRecentRequest?.bodyStreamAsJSON() as? NSDictionary
+    XCTAssertEqual(jsonBody, expectedHttpbodyWithoutIntermediateDestinations)
+    XCTAssertEqual(mostRecentRequest?.url, URL(string: expectedURL))
+    XCTAssertEqual(mostRecentRequest?.httpMethod, expectedHttpMethod)
+    XCTAssertEqual(tripName, expectedTripName)
   }
 
-  func testCreateTripFailedWithIntermediateDestinations() {
+  func testCreateTripFailedWithIntermediateDestinations() async {
     let providerService = ProviderService(session: urlSession)
 
     MockURLProtocol.requestHandler = { request in
@@ -130,18 +120,17 @@ class ProviderServiceTests: XCTestCase {
       return (response, nil)
     }
 
-    providerService.createTrip(
-      pickupLocation: pickupLocation, dropoffLocation: dropoffLocation,
-      intermediateDestinations: [intermediateDestination]
-    ) { tripName, error in
-      XCTAssertNil(tripName)
-      XCTAssertNotNil(error)
-      self.expectation.fulfill()
+    do {
+      let _ = try await providerService.createTrip(
+        pickupLocation: pickupLocation, dropoffLocation: dropoffLocation,
+        intermediateDestinations: [intermediateDestination]
+      )
+      XCTFail()
+    } catch {
     }
-    wait(for: [self.expectation], timeout: 1.0)
   }
 
-  func testCreateTripFailedWithoutIntermediateDestinations() {
+  func testCreateTripFailedWithoutIntermediateDestinations() async {
     let providerService = ProviderService(session: urlSession)
 
     MockURLProtocol.requestHandler = { request in
@@ -150,18 +139,17 @@ class ProviderServiceTests: XCTestCase {
       return (response, nil)
     }
 
-    providerService.createTrip(
-      pickupLocation: pickupLocation, dropoffLocation: dropoffLocation,
-      intermediateDestinations: []
-    ) { tripName, error in
-      XCTAssertNil(tripName)
-      XCTAssertNotNil(error)
-      self.expectation.fulfill()
+    do {
+      let _ = try await providerService.createTrip(
+        pickupLocation: pickupLocation, dropoffLocation: dropoffLocation,
+        intermediateDestinations: []
+      )
+      XCTFail()
+    } catch {
     }
-    wait(for: [self.expectation], timeout: 1.0)
   }
 
-  func testCancelledTripSuccess() {
+  func testCancelledTripSuccess() async throws {
     let providerService = ProviderService(session: urlSession)
 
     MockURLProtocol.requestHandler = { request in
@@ -170,10 +158,6 @@ class ProviderServiceTests: XCTestCase {
       return (response, nil)
     }
 
-    providerService.cancelTrip(tripID: "fakeTripID") { error in
-      XCTAssertNil(error)
-      self.expectation.fulfill()
-    }
-    wait(for: [self.expectation], timeout: 1.0)
+    try await providerService.cancelTrip(tripID: "fakeTripID")
   }
 }

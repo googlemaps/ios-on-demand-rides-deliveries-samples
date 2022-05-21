@@ -145,15 +145,16 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, GMSNavigat
   }
 
   private func createVehicle() {
-    let randomVehicleID = String(format: "iOS-%@", UUID().uuidString)
-    providerService.createVehicle(
-      vehicleID: randomVehicleID, isBackToBackEnabled: true
-    ) { [weak self] vehicleID, error in
-      guard let vehicleID = vehicleID, error == nil else {
-        self?.showCreateVehicleFailureAlert()
+    Task {
+      let randomVehicleID = String(format: "iOS-%@", UUID().uuidString)
+      guard
+        let vehicleID = try? await providerService.createVehicle(
+          vehicleID: randomVehicleID, isBackToBackEnabled: true)
+      else {
+        showCreateVehicleFailureAlert()
         return
       }
-      self?.handleCreateVehicle(vehicleID: vehicleID)
+      handleCreateVehicle(vehicleID: vehicleID)
     }
   }
 
@@ -217,17 +218,20 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, GMSNavigat
     }
 
     isFetchVehicleInProgress = true
-
-    providerService.getVehicle(vehicleID: vehicleID) { [weak self] matchedTripIDs, error in
-      self?.handleFetchVehicle(matchedTripIDs: matchedTripIDs, error: error)
+    Task {
+      guard let matchedTripIDs = try? await providerService.getVehicle(vehicleID: vehicleID)
+      else {
+        isFetchVehicleInProgress = false
+        return
+      }
+      isFetchVehicleInProgress = false
+      handleFetchVehicle(matchedTripIDs: matchedTripIDs)
     }
   }
 
-  private func handleFetchVehicle(matchedTripIDs: [String]?, error: Error?) {
-    isFetchVehicleInProgress = false
-
+  private func handleFetchVehicle(matchedTripIDs: [String]) {
     // Keep polling if there are no trips found for this vehicle.
-    guard error == nil, let tripIDs = matchedTripIDs, !tripIDs.isEmpty else { return }
+    guard !matchedTripIDs.isEmpty else { return }
 
     // Stop polling as trip data has been found for this vehicle.
     pollFetchVehicleTimer?.invalidate()
@@ -236,26 +240,26 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, GMSNavigat
     // Update current trip ID to the first trip ID in the assigned trips list.
     if modelData.tripID == nil {
       modelData.driverState = .new
-      modelData.tripID = tripIDs[0]
+      modelData.tripID = matchedTripIDs[0]
       handleNewTrip()
     }
-    if tripIDs.count >= 2 {
-      modelData.nextTripID = tripIDs[1]
+    if matchedTripIDs.count >= 2 {
+      modelData.nextTripID = matchedTripIDs[1]
     }
   }
 
   private func handleNewTrip() {
     guard let tripID = modelData.tripID else { return }
 
-    // Fetch trip details for the current trip ID.
-    providerService.getTrip(tripID: tripID) { [weak self] tripStatus, waypoints, error in
-      guard let strongSelf = self, error == nil else { return }
-      strongSelf.modelData.waypoints = waypoints
-      strongSelf.setNextWaypointAsTheDestination()
-    }
+    Task {
+      // Fetch trip details for the current trip ID.
+      guard let (_, waypoints) = try? await providerService.getTrip(tripID: tripID) else { return }
+      modelData.waypoints = waypoints
+      setNextWaypointAsTheDestination()
 
-    // Reset intermediate destinations index.
-    modelData.intermediateDestinationIndex = 0
+      // Reset intermediate destinations index.
+      modelData.intermediateDestinationIndex = 0
+    }
   }
 
   @objc private func didTapControlPanelButton(notification: Notification) {
@@ -332,10 +336,11 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, GMSNavigat
   }
 
   private func updateTrip(status: ProviderTripStatus, intermediateDestinationIndex: Int? = nil) {
-    guard let tripID = modelData.tripID else { return }
-    providerService.updateTrip(
-      tripID: tripID, status: status, intermediateDestinationIndex: intermediateDestinationIndex
-    ) { _ in
+    Task {
+      guard let tripID = modelData.tripID else { return }
+      try? await providerService.updateTrip(
+        tripID: tripID, status: status, intermediateDestinationIndex: intermediateDestinationIndex
+      )
     }
   }
 

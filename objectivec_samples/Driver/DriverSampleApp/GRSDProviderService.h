@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2020 Google LLC. All rights reserved.
  *
@@ -40,22 +39,22 @@ FOUNDATION_EXTERN NSString *const GRSDProviderServiceTripStatusComplete;
 /**
  * Callback block definition of creating a vehicle.
  *
- * @param name The name associated with the vehicle. It is nil if there's an error
+ * @param vehicleID The vehicle ID associated with the vehicle. It is nil if there's an error
  * creating a driver with the provider.
- * @param error Error when  creating a driver with the provider. It is nil if creating a driver with
+ * @param error Error when creating a driver with the provider. It is nil if creating a driver with
  * the provider succeeds.
  */
-typedef void (^GRSDCreateVehicleWithIDHandler)(NSString *_Nullable name, NSError *_Nullable error);
+typedef void (^GRSDCreateVehicleWithIDHandler)(NSString *_Nullable vehicleID, NSError *_Nullable error);
 
 /**
  * Callback block definition for fetching trip details.
  *
- * @param tripID The trip ID to fetch details for. Will be nil if there's an error fetching trip
+ * @param tripID The trip ID to fetch details for. It is nil if there's an error fetching trip
  * details from the provider.
- * @param tripStatus The trip status associated with the trip. Will be nil if there's an error
+ * @param tripStatus The trip status associated with the trip. It is nil if there's an error
  * fetching trip details from the provider.
  * @param waypoints The waypoints associated with the trip.
- * @param error Error when fetching trip details from the provider. Will be nil if fetching trip
+ * @param error Error when fetching trip details from the provider. It is nil if fetching trip
  * details from the provider succeeds.
  */
 typedef void (^GRSDFetchTripHandler)(NSString *_Nullable tripID, NSString *_Nullable tripStatus,
@@ -77,7 +76,7 @@ typedef void (^GRSDUpdateTripHandler)(NSString *_Nullable tripID, NSError *_Null
  * Callback block definition for fetching a vehicle
  *
  * @param matchedTripIDs The list of matched trip IDs for this vehicle.
- * @param error Error when fetching a vehicle from the provider. Will be nil if fetching a vehicle
+ * @param error Error when fetching a vehicle from the provider. It is nil if fetching a vehicle
  * succeeds.
  */
 typedef void (^GRSDFetchVehicleHandler)(NSArray<NSString *> *_Nullable matchedTripIDs,
@@ -116,7 +115,7 @@ typedef void (^GRSDFetchVehicleHandler)(NSArray<NSString *> *_Nullable matchedTr
  * @param newTripStatus The new status for the trip.
  * @param tripID The trip ID associated with the driver.
  * @param intermediateDestinationIndex The index for the intermediate destination being updated.
- * Will be nil if no intermediate destinations are being updated.
+ * It is nil if no intermediate destinations are being updated.
  * @param completion The block executed when the request finishes.
  */
 - (void)updateTripWithStatus:(NSString *)newTripStatus

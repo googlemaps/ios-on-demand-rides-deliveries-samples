@@ -43,12 +43,6 @@ enum RPCConstants {
   static let httpMethodPUT = "PUT"
 }
 
-/// Completion handler type definition for the createTrip process.
-typealias CreateTripCompletionHandler = (String?, Error?) -> Void
-
-/// Completion handler type definition for the cancelTrip process.
-typealias CancelTripCompletionHandler = (Error?) -> Void
-
 /// A service that provides POST and PUT requests to your server.
 class ProviderService {
 
@@ -63,12 +57,11 @@ class ProviderService {
     self.session = session
   }
 
-  /// Creates an exclusive single-ride trip.
+  /// Creates an exclusive trip and returns the trip name.
   func createTrip(
     pickupLocation: GMTSTerminalLocation, dropoffLocation: GMTSTerminalLocation,
-    intermediateDestinations: [GMTSTerminalLocation],
-    completion: @escaping CreateTripCompletionHandler
-  ) {
+    intermediateDestinations: [GMTSTerminalLocation]
+  ) async throws -> String {
     let requestURL = ProviderUtils.providerURL(path: RPCConstants.providerCreateTripURLPath)
     let payloadDict =
       [
@@ -85,29 +78,20 @@ class ProviderService {
 
     let request = getJSONRequest(
       url: requestURL, payloadDict: payloadDict, method: RPCConstants.httpMethodPOST)
-
-    let sessionTask = session.dataTask(with: request) { data, _, error in
-      guard error == nil else {
-        completion(nil, error)
-        return
-      }
-      guard let data = data,
-        let parsedDictionary = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-        let tripName = parsedDictionary[RPCConstants.tripNameKey] as? String
-      else {
-        completion(nil, Error.missingData)
-        return
-      }
-      completion(tripName, nil)
+    let (data, _) = try await session.data(for: request, delegate: nil)
+    guard
+      let parsedDictionary = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+      let tripName = parsedDictionary[RPCConstants.tripNameKey] as? String
+    else {
+      throw Error.missingData
     }
-    sessionTask.resume()
+    return tripName
   }
 
   /// Cancels an existing trip.
-  func cancelTrip(tripID: String, completion: @escaping CancelTripCompletionHandler) {
+  func cancelTrip(tripID: String) async throws {
     guard let requestURL = getProviderUpdateTripStatusURL(tripID: tripID) else {
-      completion(Error.missingURL)
-      return
+      throw Error.missingURL
     }
     let payloadDict =
       [
@@ -115,10 +99,7 @@ class ProviderService {
       ] as [String: Any]
     let request = getJSONRequest(
       url: requestURL, payloadDict: payloadDict, method: RPCConstants.httpMethodPUT)
-    let sessionTask = session.dataTask(with: request) { _, _, error in
-      completion(error)
-    }
-    sessionTask.resume()
+    let _ = try await session.data(for: request, delegate: nil)
   }
 
   private func getJSONRequest(url: URL, payloadDict: [String: Any], method: String) -> URLRequest {

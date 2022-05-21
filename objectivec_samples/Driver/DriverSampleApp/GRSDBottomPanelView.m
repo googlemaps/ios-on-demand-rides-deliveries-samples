@@ -66,8 +66,8 @@ static UILabel *CreateTripIDLabel(void) {
                  buttonAction:(SEL)buttonAction {
   self = [super initWithFrame:CGRectZero];
   if (self) {
-    super.backgroundColor = UIColor.whiteColor;
-    super.translatesAutoresizingMaskIntoConstraints = NO;
+    self.backgroundColor = UIColor.whiteColor;
+    self.translatesAutoresizingMaskIntoConstraints = NO;
 
     self.axis = UILayoutConstraintAxisVertical;
     self.spacing = kPanelSpacing;
@@ -77,7 +77,7 @@ static UILabel *CreateTripIDLabel(void) {
     self.translatesAutoresizingMaskIntoConstraints = NO;
 
     _titleLabel = CreateTitleLabel();
-    _titleLabel.text = [title copy];
+    _titleLabel.text = title;
     _tripIDLabel = CreateTripIDLabel();
     _nextTripIDLabel = CreateTripIDLabel();
     _nextTripIDLabel.hidden = YES;

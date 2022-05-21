@@ -53,7 +53,7 @@ After all prerequisites are met:
     to open the project, *not* the `.xcodeproj` file.
 
 1.  Follow the
-    [Get an API key guide](https://developers.devsite.corp.google.com/maps/documentation/ios-sdk/get-api-key#add_key)
+    [Getting an API Key guide](https://developers.google.com/maps/documentation/ios-sdk/get-api-key)
     to add your Maps API key to your app.
 
     - For Swift, update `mapsAPIKey` in `APIConstants.swift` for both Consumer

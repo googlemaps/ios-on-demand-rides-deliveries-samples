@@ -113,7 +113,7 @@
 				EE05992C27067ED700605B6C /* LaunchScreen.storyboard */,
 			);
 			name = Base.lproj;
-			path = ../../../../../../../../Desktop/DriverSampleApp/Base.lproj;
+			path = Base.lproj;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

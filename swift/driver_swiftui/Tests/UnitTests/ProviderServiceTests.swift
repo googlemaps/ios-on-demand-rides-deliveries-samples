@@ -39,20 +39,15 @@ class ProviderServiceTests: XCTestCase {
     }
   }
 
-  func testCreateVehicle() throws {
+  func testCreateVehicle() async throws {
     setProviderResponse(jsonObject: [
       "name": "providers/test-provider/vehicles/test-vehicle"
     ])
 
-    let expectation = self.expectation(description: "Vehicle was created")
     let providerService = ProviderService(session: urlSession)
-    providerService.createVehicle(vehicleID: "test-vehicle", isBackToBackEnabled: true) {
-      vehicleID, error in
-      XCTAssertEqual(vehicleID, "test-vehicle")
-      XCTAssertNil(error)
-      expectation.fulfill()
-    }
-    wait(for: [expectation], timeout: 1.0)
+    let vehicleID = try await providerService.createVehicle(
+      vehicleID: "test-vehicle", isBackToBackEnabled: true)
+    XCTAssertEqual(vehicleID, "test-vehicle")
 
     let request = try XCTUnwrap(mostRecentRequest)
     XCTAssertEqual(request.url, URL(string: "http://localhost:8080/vehicle/new"))
@@ -66,40 +61,33 @@ class ProviderServiceTests: XCTestCase {
       ] as NSDictionary)
   }
 
-  func testCreateVehicleFailed() {
+  func testCreateVehicleFailed() async {
     setProviderResponse(jsonObject: [:])
 
-    let expectation = self.expectation(description: "Vehicle was not created successfully")
     let providerService = ProviderService(session: urlSession)
-    providerService.createVehicle(vehicleID: "test-vehicle", isBackToBackEnabled: true) {
-      vehicleID, error in
-      XCTAssertNil(vehicleID)
-      XCTAssertNotNil(error)
-      expectation.fulfill()
+    do {
+      let _ = try await providerService.createVehicle(
+        vehicleID: "test-vehicle", isBackToBackEnabled: true)
+      XCTFail()
+    } catch {
     }
-    wait(for: [expectation], timeout: 1.0)
   }
 
-  func testGetVehicle() throws {
+  func testGetVehicle() async throws {
     setProviderResponse(jsonObject: [
       "currentTripsIds": ["test-trip1", "test-trip2"]
     ])
 
-    let expectation = self.expectation(description: "Vehicle data was received")
     let providerService = ProviderService(session: urlSession)
-    providerService.getVehicle(vehicleID: "test-vehicle") { matchedTripIDs, error in
-      XCTAssertEqual(matchedTripIDs, ["test-trip1", "test-trip2"])
-      XCTAssertNil(error)
-      expectation.fulfill()
-    }
-    wait(for: [expectation], timeout: 1.0)
+    let matchedTripIDs = try await providerService.getVehicle(vehicleID: "test-vehicle")
+    XCTAssertEqual(matchedTripIDs, ["test-trip1", "test-trip2"])
 
     let request = try XCTUnwrap(mostRecentRequest)
     XCTAssertEqual(request.url, URL(string: "http://localhost:8080/vehicle/test-vehicle"))
     XCTAssertEqual(request.httpMethod, "GET")
   }
 
-  func testGetTrip() throws {
+  func testGetTrip() async throws {
     setProviderResponse(jsonObject: [
       "trip": [
         "tripStatus": "ENROUTE_TO_PICKUP",
@@ -155,33 +143,23 @@ class ProviderServiceTests: XCTestCase {
         eta: 0),
     ]
 
-    let expectation = self.expectation(description: "Trip data was received")
     let providerService = ProviderService(session: urlSession)
-    providerService.getTrip(tripID: tripID) { tripStatus, waypoints, error in
-      XCTAssertEqual(tripStatus, expectedTripStatus)
-      XCTAssertEqual(waypoints, expectedWaypoints)
-      XCTAssertNil(error)
-      expectation.fulfill()
-    }
-    wait(for: [expectation], timeout: 1.0)
+    let (tripStatus, waypoints) = try await providerService.getTrip(tripID: tripID)
+    XCTAssertEqual(tripStatus, expectedTripStatus)
+    XCTAssertEqual(waypoints, expectedWaypoints)
 
     let request = try XCTUnwrap(mostRecentRequest)
     XCTAssertEqual(request.url, URL(string: "http://localhost:8080/trip/test-trip"))
     XCTAssertEqual(request.httpMethod, "GET")
   }
 
-  func testUpdateTrip() throws {
+  func testUpdateTrip() async throws {
     setProviderResponse(jsonObject: [:])
 
-    let expectation = self.expectation(description: "Trip was updated")
     let providerService = ProviderService(session: urlSession)
-    providerService.updateTrip(
+    try await providerService.updateTrip(
       tripID: "test-trip", status: .enrouteToPickup, intermediateDestinationIndex: nil
-    ) { error in
-      XCTAssertNil(error)
-      expectation.fulfill()
-    }
-    wait(for: [expectation], timeout: 1.0)
+    )
 
     let request = try XCTUnwrap(mostRecentRequest)
     XCTAssertEqual(request.url, URL(string: "http://localhost:8080/trip/test-trip"))
