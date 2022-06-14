@@ -47,11 +47,13 @@ typedef void (^GRSCCancelTripCompletionHandler)(NSError *_Nullable error);
  * @param intermediateDestinations The intermediate destinations for the trip if any. Will be empty
  * if trip does not have intermediate destinations.
  * @param dropoff The dropoff location for the trip.
+ * @param isSharedTrip Whether the trip is a shared trip.
  * @param completion The block executed when a response from the provider is received.
  */
 - (void)createTripWithPickup:(nonnull GMTSTerminalLocation *)pickup
     intermediateDestinations:(nonnull NSArray<GMTSTerminalLocation *> *)intermediateDestinations
                      dropoff:(nonnull GMTSTerminalLocation *)dropoff
+                isSharedTrip:(BOOL)isSharedTrip
                   completion:(nonnull GRSCCreateTripCompletionHandler)completion;
 
 /**

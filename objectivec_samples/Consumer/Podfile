@@ -2,5 +2,6 @@ source 'https://cpdc-eap.googlesource.com/ridesharing-consumer-sdk'
 source 'https://github.com/CocoaPods/Specs.git'
 
 target 'ConsumerSampleApp' do
+  platform :ios, '13.0'
   pod 'GoogleRidesharingConsumer'
 end

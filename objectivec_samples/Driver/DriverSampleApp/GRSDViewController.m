@@ -21,6 +21,7 @@
 #import "GRSDAPIConstants.h"
 #import "GRSDBottomPanelView.h"
 #import "GRSDProviderService.h"
+#import "GRSDVehicleModel.h"
 
 /** Coordinates to be used for setting driver location when in simulator. */
 static const CLLocationCoordinate2D kSanFranciscoCoordinates = {37.7749295, -122.4194155};
@@ -306,23 +307,30 @@ static NSString *const kDriverCreationFailedAlertRetryTitle = @"Retry";
   __weak typeof(self) weakSelf = self;
   NSString *randomVehicleID = [NSString stringWithFormat:@"iOS-%@", [NSUUID UUID].UUIDString];
   // Create a vehicle with b2b support enabled by default.
-  [_providerService createVehicleWithID:randomVehicleID
-                    isBackToBackEnabled:YES
-                             completion:^(NSString *_Nullable vehicleID, NSError *_Nullable error) {
-                               [weakSelf handleCreateVehicleWithID:vehicleID
-                                                             error:error
-                                                        completion:completion];
-                             }];
+  [_providerService
+      createVehicleWithID:randomVehicleID
+      isBackToBackEnabled:YES
+               completion:^(GRSDVehicleModel *_Nullable vehicleModel, NSError *_Nullable error) {
+                 [weakSelf handleCreateVehicleWithModel:vehicleModel
+                                                  error:error
+                                             completion:completion];
+               }];
 }
 
-- (void)handleCreateVehicleWithID:(NSString *)vehicleID
-                            error:(NSError *)error
-                       completion:(GRSDCreateDriverHandler)completion {
+- (void)handleCreateVehicleWithModel:(GRSDVehicleModel *)vehicleModel
+                               error:(NSError *)error
+                          completion:(GRSDCreateDriverHandler)completion {
   if (error) {
     NSLog(@"Failed to create vehicle: %@", error.localizedDescription);
     completion(NO);
     return;
   }
+
+  if (!vehicleModel) {
+    return;
+  }
+
+  NSString *vehicleID = vehicleModel.vehicleID;
 
   if (vehicleID.length == 0) {
     completion(NO);

@@ -18,6 +18,8 @@
 #import <CoreLocation/CoreLocation.h>
 #import <Foundation/Foundation.h>
 
+#import "GRSDVehicleModel.h"
+
 static const int kProviderErrorCode = -1;
 static NSString *const kGRSDErrorDomain = @"GRSDErrorDomain";
 
@@ -43,6 +45,8 @@ static NSString *const kProviderDataKeyTrip = @"trip";
 static NSString *const kProviderDataKeyWaypointType = @"waypointType";
 static NSString *const kProviderDataKeyCurrentTripIDs = @"currentTripsIds";
 static NSString *const kProviderDataKeyBackToBackEnabled = @"backToBackEnabled";
+static NSString *const kProviderDataKeyMaximumCapacity = @"maximumCapacity";
+static NSString *const kProviderDataKeySupportedTripTypes = @"supportedTripTypes";
 
 // The base URL string for the sample provider server.
 static NSString *const kSampleProviderBaseURLString = @"http://localhost:8080/";
@@ -69,6 +73,10 @@ static NSString *const kProviderWaypointTypeDropoff = @"DROP_OFF_WAYPOINT_TYPE";
 static NSString *const kProviderWaypointTypeIntermediateDestination =
     @"INTERMEDIATE_DESTINATION_WAYPOINT_TYPE";
 
+// Provider supported trip types.
+static NSString *const kProviderTripTypeExclusive = @"EXCLUSIVE";
+static NSString *const kProviderTripTypeShared = @"SHARED";
+
 // HTTP constants.
 static NSInteger const kHTTPStatusOkCode = 200;
 static NSString *const kHTTPGetMethod = @"GET";
@@ -86,6 +94,7 @@ static NSString *const kErrorFetchingTripDescription = @"Error fetching trip.";
 static NSString *const kInvalidTripIDDescription = @"Invalid trip ID.";
 static NSString *const kErrorUpdatingTripDescription = @"Error updating trip.";
 static NSString *const kErrorFetchingVehicleDescription = @"Error fetching vehicle.";
+static NSString *const kErrorInvalidResponseDescription = @"Invalid response.";
 
 /**
  * Generates a JSON request based on the passed in method.
@@ -174,6 +183,43 @@ static GMTSTripWaypointType GetTripWaypointTypeFromString(NSString *waypointType
   }
 }
 
+/** Returns a @c ProviderSupportedTripType enum from given JSON response. */
+static ProviderSupportedTripType GetSupportedTripTypesFromJSONResponse(
+    NSDictionary<NSString *, id> *jsonResponse) {
+  ProviderSupportedTripType supportedTripTypes = ProviderSupportedTripTypeNone;
+  NSArray<NSString *> *vehicleSupportedTripTypesArray =
+      jsonResponse[kProviderDataKeySupportedTripTypes];
+  if ([vehicleSupportedTripTypesArray containsObject:kProviderTripTypeExclusive]) {
+    supportedTripTypes |= ProviderSupportedTripTypeExclusive;
+  }
+  if ([vehicleSupportedTripTypesArray containsObject:kProviderTripTypeShared]) {
+    supportedTripTypes |= ProviderSupportedTripTypeShared;
+  }
+  return supportedTripTypes;
+}
+
+/**
+ * Returns a @c GRSDVehicleModel from given JSON response. Will return nil if fields are missing
+ * from response.
+ */
+static GRSDVehicleModel *_Nullable GetVehicleModelFromJSONResponse(
+    NSString *vehicleID, NSDictionary<NSString *, id> *jsonResponse) {
+  NSNumber *maximumCapacity = jsonResponse[kProviderDataKeyMaximumCapacity];
+  id isBackToBackEnabledValue = jsonResponse[kProviderDataKeyBackToBackEnabled];
+  if (maximumCapacity && isBackToBackEnabledValue) {
+    BOOL isBackToBackEnabled = [isBackToBackEnabledValue boolValue];
+    ProviderSupportedTripType supportedTripTypes =
+        GetSupportedTripTypesFromJSONResponse(jsonResponse);
+    GRSDVehicleModel *createdVehicleModel =
+        [[GRSDVehicleModel alloc] initWithVehicleID:vehicleID
+                                    maximumCapacity:maximumCapacity.unsignedIntegerValue
+                                 supportedTripTypes:supportedTripTypes
+                                isBackToBackEnabled:isBackToBackEnabled];
+    return createdVehicleModel;
+  }
+  return nil;
+}
+
 - (void)createVehicleWithID:(NSString *)vehicleID
         isBackToBackEnabled:(BOOL)isBackToBackEnabled
                  completion:(GRSDCreateVehicleWithIDHandler)completion {
@@ -243,7 +289,12 @@ static GMTSTripWaypointType GetTripWaypointTypeFromString(NSString *waypointType
       completion(nil, GRSDError(kProviderErrorCode, kInvalidVehicleNameDescription));
       return;
     }
-    completion(vehicleID, nil);
+    GRSDVehicleModel *createdVehicle = GetVehicleModelFromJSONResponse(vehicleID, jsonResponse);
+    if (createdVehicle) {
+      completion(createdVehicle, nil);
+    } else {
+      completion(nil, GRSDError(kProviderErrorCode, kErrorInvalidResponseDescription));
+    }
   }
 }
 
