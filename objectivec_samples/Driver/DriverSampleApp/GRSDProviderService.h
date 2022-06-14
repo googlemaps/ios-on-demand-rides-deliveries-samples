@@ -28,6 +28,15 @@ FOUNDATION_EXTERN NSString *const GRSDProviderServiceTripStatusArrivedAtIntermed
 FOUNDATION_EXTERN NSString *const GRSDProviderServiceTripStatusEnrouteToDropoff;
 FOUNDATION_EXTERN NSString *const GRSDProviderServiceTripStatusComplete;
 
+/** Enum that represents the possible trip types a vehicle can support. */
+typedef NS_OPTIONS(NSUInteger, ProviderSupportedTripType) {
+  ProviderSupportedTripTypeNone = 0,              // => 00000000
+  ProviderSupportedTripTypeExclusive = (1 << 0),  // => 00000001
+  ProviderSupportedTripTypeShared = (1 << 1)      // => 00000010
+};
+
+@class GRSDVehicleModel;
+
 /**
  * An implementation of GRSAuthorization which provides authorization tokens for FleetEngine.
  */
@@ -39,13 +48,13 @@ FOUNDATION_EXTERN NSString *const GRSDProviderServiceTripStatusComplete;
 /**
  * Callback block definition of creating a vehicle.
  *
- * @param vehicleID The vehicle ID associated with the vehicle. It is nil if there's an error
+ * @param vehicleModel The model representing the created vehicle. It is nil if there's an error
  * creating a driver with the provider.
  * @param error Error when creating a driver with the provider. It is nil if creating a driver with
  * the provider succeeds.
  */
-typedef void (^GRSDCreateVehicleWithIDHandler)(NSString *_Nullable vehicleID, NSError *_Nullable error);
-
+typedef void (^GRSDCreateVehicleWithIDHandler)(GRSDVehicleModel *_Nullable vehicleModel,
+                                               NSError *_Nullable error);
 /**
  * Callback block definition for fetching trip details.
  *

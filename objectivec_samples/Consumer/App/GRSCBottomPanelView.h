@@ -40,6 +40,15 @@
 - (void)bottomPanel:(nonnull GRSCBottomPanelView *)panel
     didTapAddIntermediateDestinationButton:(nonnull UIButton *)button;
 
+/**
+ * Called when the Shared trip type switch is toggled.
+ *
+ * @param panel The current instance of the bottom panel view.
+ * @param sharedTripTypeSwitch The shared trip type switch that was toggled.
+ */
+- (void)bottomPanel:(nonnull GRSCBottomPanelView *)panel
+    didToggleSharedTripTypeSwitch:(nonnull UISwitch *)sharedTripTypeSwitch;
+
 @end
 
 /**
@@ -67,6 +76,9 @@
 
 /** Button used to add intermediate destinations for a trip. */
 @property(nonatomic, strong, readonly, nonnull) UIButton *addIntermediateDestinationButton;
+
+/** StackView used to display the shared trip type switch and associated label. */
+@property(nonatomic, strong, readonly, nonnull) UIStackView *sharedTripTypeSwitchContainer;
 
 /** Hides all labels from the panel. */
 - (void)hideAllLabels;

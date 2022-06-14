@@ -28,6 +28,9 @@ static NSString *const kGRSCDropoffKey = @"dropoff";
 static NSString *const kGRSCLatitudeKey = @"latitude";
 static NSString *const kGRSCLongitudeKey = @"longitude";
 static NSString *const kGRSCStatusKey = @"status";
+static NSString *const kGRSCTripTypeKey = @"tripType";
+static NSString *const kGRSCTripTypeExclusiveKey = @"EXCLUSIVE";
+static NSString *const kGRSCTripTypeSharedKey = @"SHARED";
 
 // Response parameter keys.
 static NSString *const kGRSCTripNameKey = @"name";
@@ -110,6 +113,7 @@ static NSURL *_Nullable GetProviderUpdateTripStatusURLWithTripID(NSString *_Nonn
 - (void)createTripWithPickup:(nonnull GMTSTerminalLocation *)pickup
     intermediateDestinations:(nonnull NSArray<GMTSTerminalLocation *> *)intermediateDestinations
                      dropoff:(nonnull GMTSTerminalLocation *)dropoff
+                isSharedTrip:(BOOL)isSharedTrip
                   completion:(nonnull GRSCCreateTripCompletionHandler)completion {
   NSURL *requestURL = GRSCProviderURLWithPath(kGRSCProviderCreateTripURLString);
 
@@ -130,6 +134,9 @@ static NSURL *_Nullable GetProviderUpdateTripStatusURLWithTripID(NSString *_Nonn
         GetLocationsArrayFromIntermediateDestinations(intermediateDestinations);
     [requestBody setObject:intermediateDestinationsArray forKey:kGRSCIntermediateDestinationsKey];
   }
+
+  NSString *tripType = isSharedTrip ? kGRSCTripTypeSharedKey : kGRSCTripTypeExclusiveKey;
+  [requestBody setObject:tripType forKey:kGRSCTripTypeKey];
 
   NSURLRequest *request = GetJSONRequest(requestURL, requestBody, kGRSCHTTPMethodPOST);
 

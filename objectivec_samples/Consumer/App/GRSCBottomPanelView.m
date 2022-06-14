@@ -14,7 +14,7 @@
  */
 
 #import "GRSCBottomPanelView.h"
-
+#import "GRSCBottomPanelViewConstants.h"
 #import "GRSCStyle.h"
 
 // UI view style constants.
@@ -74,6 +74,31 @@ static UILabel *CreateUILabel(void) {
   return label;
 }
 
+/** Creates a @c UISwitch for enabling Shared trip type. */
+static UISwitch *CreateSharedTripTypeSwitch(void) {
+  UISwitch *tripTypeSwitch = [[UISwitch alloc] init];
+  [tripTypeSwitch setOn:NO];
+  return tripTypeSwitch;
+}
+
+/** Creates a @c UILabel for the Shared trip type. */
+static UILabel *CreateSharedTripTypeLabel(void) {
+  UILabel *label = [[UILabel alloc] init];
+  label.font = [UIFont systemFontOfSize:GRSCStyleMediumFontSize()];
+  label.numberOfLines = 0;
+  label.text = GRSCBottomPanelSharedTripTypeLabelText;
+  return label;
+}
+
+/** Creates a @c UIStackView for the Shared trip type switch and label. */
+static UIStackView *CreateSharedTripTypeContainer(void) {
+  UIStackView *container = [[UIStackView alloc] init];
+  container.alignment = UIStackViewAlignmentCenter;
+  container.hidden = YES;
+  container.distribution = UIStackViewDistributionFill;
+  return container;
+}
+
 @implementation GRSCBottomPanelView
 
 - (instancetype)init {
@@ -122,6 +147,18 @@ static UILabel *CreateUILabel(void) {
     _addIntermediateDestinationButton.hidden = YES;
     [titleStackView addArrangedSubview:_addIntermediateDestinationButton];
 
+    UISwitch *sharedTripTypeSwitch = CreateSharedTripTypeSwitch();
+    UILabel *switchLabel = CreateSharedTripTypeLabel();
+    [sharedTripTypeSwitch addTarget:self
+                             action:@selector(didToggleSharedTripTypeSwitch:)
+                   forControlEvents:UIControlEventValueChanged];
+
+    _sharedTripTypeSwitchContainer = CreateSharedTripTypeContainer();
+    [_sharedTripTypeSwitchContainer addArrangedSubview:switchLabel];
+    [_sharedTripTypeSwitchContainer addArrangedSubview:sharedTripTypeSwitch];
+
+    [titleStackView addArrangedSubview:_sharedTripTypeSwitchContainer];
+
     _infoLabel = CreateUILabel();
     _infoLabel.font = [UIFont systemFontOfSize:GRSCStyleMediumFontSize() weight:UIFontWeightMedium];
     [headerView addArrangedSubview:_infoLabel];
@@ -152,6 +189,10 @@ static UILabel *CreateUILabel(void) {
 
 - (void)didTapAddIntermediateDestinationButton:(UIButton *)sender {
   [self.delegate bottomPanel:self didTapAddIntermediateDestinationButton:sender];
+}
+
+- (void)didToggleSharedTripTypeSwitch:(UISwitch *)sharedTripTypeSwitch {
+  [self.delegate bottomPanel:self didToggleSharedTripTypeSwitch:sharedTripTypeSwitch];
 }
 
 - (void)hideAllLabels {

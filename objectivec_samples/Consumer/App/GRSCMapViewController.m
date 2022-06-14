@@ -94,6 +94,8 @@ typedef NS_ENUM(NSUInteger, GRSCMapViewCustomerState) {
   GMSPolyline *_tripPreviewPolyline;
   /** Marker used to represent the dropoff point of a previous trip during a back-to-back case. */
   GMSMarker *_previousTripDropoffMarker;
+  /** Whether the trip being booked is a shared trip. */
+  BOOL _isTripShared;
 }
 
 - (void)viewDidLoad {
@@ -130,6 +132,7 @@ typedef NS_ENUM(NSUInteger, GRSCMapViewCustomerState) {
                                  longitude:kGMTSCDefaultCameraLongitude];
   _updatedPickupLocation = GMTSTerminalLocationFromPoint(initialPickupPoint);
   _updatedDropoffLocation = GMTSTerminalLocationFromPoint(nil);
+  _isTripShared = NO;
 }
 
 - (void)setMapViewConstraints {
@@ -271,7 +274,7 @@ typedef NS_ENUM(NSUInteger, GRSCMapViewCustomerState) {
   [_bottomPanel.actionButton setTitle:GRSCBottomPanelConfirmTripButtonText
                              forState:UIControlStateNormal];
   __weak __typeof(self) weakSelf = self;
-  [self setBottomPanelHeight:GRSCBottomPanelHeightSmall()
+  [self setBottomPanelHeight:GRSCBottomPanelHeightMedium()
          animationCompletion:^(BOOL finished) {
            [weakSelf startTripBookingInMapView];
          }];
@@ -285,6 +288,8 @@ typedef NS_ENUM(NSUInteger, GRSCMapViewCustomerState) {
   if (!_waypointSelector.selectedPickupLocation || !_waypointSelector.selectedDropoffLocation) {
     return;
   }
+
+  _bottomPanel.sharedTripTypeSwitchContainer.hidden = NO;
 
   CLLocationCoordinate2D pickupPosition =
       [_waypointSelector.selectedPickupLocation.point coordinate];
@@ -396,6 +401,7 @@ typedef NS_ENUM(NSUInteger, GRSCMapViewCustomerState) {
   _bottomPanel.titleLabel.hidden = NO;
   _bottomPanel.tripIDLabel.hidden = NO;
   _bottomPanel.titleLabel.text = GRSCBottomPanelWaitingForDriverMatchTitleText;
+  _bottomPanel.sharedTripTypeSwitchContainer.hidden = YES;
 
   _bottomPanel.actionButton.backgroundColor = GRSCStyleDefaultButtonColor();
   [_bottomPanel.actionButton setTitle:GRSCBottomPanelCancelRideButtonText
@@ -447,6 +453,7 @@ typedef NS_ENUM(NSUInteger, GRSCMapViewCustomerState) {
 /** Resets the bottom panel to the default state. */
 - (void)resetPanelState {
   [_bottomPanel hideAllLabels];
+  _bottomPanel.sharedTripTypeSwitchContainer.hidden = YES;
   __weak __typeof(self) weakSelf = self;
   [self setBottomPanelHeight:GRSCBottomPanelHeightSmall()
          animationCompletion:^(BOOL finished) {
@@ -472,6 +479,7 @@ typedef NS_ENUM(NSUInteger, GRSCMapViewCustomerState) {
   [_providerService createTripWithPickup:pickupLocation
                 intermediateDestinations:intermediateDestinations
                                  dropoff:dropoffLocation
+                            isSharedTrip:_isTripShared
                               completion:^(NSString *_Nullable tripName, NSError *_Nullable error) {
                                 if (!error) {
                                   [self setActiveTrip:tripName];
@@ -542,6 +550,11 @@ typedef NS_ENUM(NSUInteger, GRSCMapViewCustomerState) {
   [_waypointSelector addIntermediateDestination];
 }
 
+- (void)bottomPanel:(GRSCBottomPanelView *)panel
+    didToggleSharedTripTypeSwitch:(UISwitch *)sharedTripTypeSwitch {
+  _isTripShared = [sharedTripTypeSwitch isOn];
+}
+
 /** Ends the current controller from the trip model. */
 - (void)stopCurrentTripModel {
   GMTCTripModel *tripModel = [self currentTripModel];
@@ -590,6 +603,7 @@ typedef NS_ENUM(NSUInteger, GRSCMapViewCustomerState) {
   [self resetMapViewCamera];
   _lastTripName = nil;
   _journeySharingSession = nil;
+  _isTripShared = NO;
 }
 
 /** Removes the pickup and drop off markers from the mapview. */

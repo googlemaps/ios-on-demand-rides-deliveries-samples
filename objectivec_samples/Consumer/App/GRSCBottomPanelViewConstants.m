@@ -40,3 +40,5 @@ NSString *const GRSCBottomPanelDriverCompletingAnotherTripTitleText =
 // Bottom panel location constants.
 NSString *const GRSCBottomPanelPickupLocationText = @"pickup location";
 NSString *const GRSCBottomPanelDropoffLocationText = @"drop-off location";
+
+NSString *const GRSCBottomPanelSharedTripTypeLabelText = @"Shared Trip";

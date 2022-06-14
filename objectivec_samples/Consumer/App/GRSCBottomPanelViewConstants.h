@@ -99,3 +99,8 @@ FOUNDATION_EXTERN NSString *const GRSCBottomPanelArrivedAtIntermediateDestinatio
  * Driver is completing another trip title text.
  */
 FOUNDATION_EXTERN NSString *const GRSCBottomPanelDriverCompletingAnotherTripTitleText;
+
+/**
+ * Text displayed on the bottom panel for the Shared trip type label.
+ */
+FOUNDATION_EXTERN NSString *const GRSCBottomPanelSharedTripTypeLabelText;
