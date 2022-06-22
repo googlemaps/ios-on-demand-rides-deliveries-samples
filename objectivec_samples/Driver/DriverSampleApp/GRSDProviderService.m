@@ -54,7 +54,7 @@ static NSString *const kDriverTokenURLPath = @"token/driver/";
 static NSString *const kCreateVehicleURLPath = @"vehicle/new";
 static NSString *const kGetAvailableTripURLPath = @"trip";
 static NSString *const kUpdateTripStatusURLPath = @"trip/";
-static NSString *const kGetVehicleURLPath = @"vehicle/";
+static NSString *const kBaseVehicleURLPath = @"vehicle/";
 
 // Sample provider supported trip states.
 NSString *const GRSDProviderServiceTripStateNew = @"NEW";
@@ -79,8 +79,9 @@ static NSString *const kProviderTripTypeShared = @"SHARED";
 
 // HTTP constants.
 static NSInteger const kHTTPStatusOkCode = 200;
-static NSString *const kHTTPGetMethod = @"GET";
-static NSString *const kHTTPPostMethod = @"POST";
+static NSString *const kHTTPGETMethod = @"GET";
+static NSString *const kHTTPPOSTMethod = @"POST";
+static NSString *const kHTTPPUTMethod = @"PUT";
 
 // Error descriptions.
 static NSString *const kInvalidAuthorizationContextDescription =
@@ -95,6 +96,7 @@ static NSString *const kInvalidTripIDDescription = @"Invalid trip ID.";
 static NSString *const kErrorUpdatingTripDescription = @"Error updating trip.";
 static NSString *const kErrorFetchingVehicleDescription = @"Error fetching vehicle.";
 static NSString *const kErrorInvalidResponseDescription = @"Invalid response.";
+static NSString *const kErrorUpdatingVehicleDescription = @"Error updating vehicle.";
 
 /**
  * Generates a JSON request based on the passed in method.
@@ -159,8 +161,15 @@ static NSURL *GenerateUpdateTripStatusURL(NSString *tripID) {
 /** Creates the get vehicle URL to the sample provider server. */
 static NSURL *GenerateGetVehicleURL(NSString *vehicleID) {
   NSURL *baseURL = [NSURL URLWithString:kSampleProviderBaseURLString];
-  NSURL *fetchURL = [NSURL URLWithString:kGetVehicleURLPath relativeToURL:baseURL];
+  NSURL *fetchURL = [NSURL URLWithString:kBaseVehicleURLPath relativeToURL:baseURL];
   return [NSURL URLWithString:vehicleID relativeToURL:fetchURL];
+}
+
+/** Generates the update vehicle URL to the sample provider server. */
+static NSURL *GenerateUpdateVehicleURL(NSString *vehicleID) {
+  NSURL *baseURL = [NSURL URLWithString:kSampleProviderBaseURLString];
+  NSURL *vehicleURL = [NSURL URLWithString:kBaseVehicleURLPath relativeToURL:baseURL];
+  return [NSURL URLWithString:vehicleID relativeToURL:vehicleURL];
 }
 
 static NSError *GRSDError(NSInteger errorCode, NSString *description) {
@@ -220,6 +229,72 @@ static GRSDVehicleModel *_Nullable GetVehicleModelFromJSONResponse(
   return nil;
 }
 
+/** Returns the string representations of the given @c ProviderSupportedTripType in an array. */
+static NSArray<NSString *> *GetSupportedTripTypesArray(
+    ProviderSupportedTripType supportedTripTypes) {
+  NSMutableArray<NSString *> *result = [[NSMutableArray alloc] init];
+  if (supportedTripTypes & ProviderSupportedTripTypeExclusive) {
+    [result addObject:kProviderTripTypeExclusive];
+  }
+  if (supportedTripTypes & ProviderSupportedTripTypeShared) {
+    [result addObject:kProviderTripTypeShared];
+  }
+  return result;
+}
+
+/** Returns a dictionary with entries from the given @c GRSDVehicleModel. */
+static NSDictionary<NSString *, id> *GetJSONDictionaryFromVehicleModel(
+    GRSDVehicleModel *vehicleModel) {
+  return @{
+    kProviderDataKeyVehicleID : vehicleModel.vehicleID,
+    kProviderDataKeyMaximumCapacity : @(vehicleModel.maximumCapacity),
+    kProviderDataKeyBackToBackEnabled : @(vehicleModel.isBackToBackEnabled),
+    kProviderDataKeySupportedTripTypes :
+        GetSupportedTripTypesArray(vehicleModel.supportedTripTypes),
+  };
+}
+
+/**
+ * Returns a @c GRSDVehicleModel from the given data object. Returns nil and updates the given error
+ * object if the data is invalid or cannot be serialized to a JSON dictionary.
+ *
+ * @param data The data object containing JSON serializable data.
+ * @param error The error that is set on failure.
+ */
+static GRSDVehicleModel *_Nullable GetVehicleModelFromResponseData(NSData *data, NSError **error) {
+  NSError *JSONParseError;
+  id JSONResponse = [NSJSONSerialization JSONObjectWithData:data
+                                                    options:kNilOptions
+                                                      error:&JSONParseError];
+  NSError *errorToPropagate;
+  if (JSONParseError) {
+    errorToPropagate = JSONParseError;
+  } else if (![JSONResponse isKindOfClass:[NSDictionary class]]) {
+    errorToPropagate = GRSDError(kProviderErrorCode, kErrorInvalidResponseDescription);
+  } else {
+    // Get vehicle name from response.
+    NSString *vehicleName = JSONResponse[kProviderDataKeyName];
+    // Provider returns fully qualified vehicle name in this form:
+    // 'providers/providerID/vehicles/vehicleID'. So strip provider ID from it.
+    NSString *vehicleID = [vehicleName componentsSeparatedByString:@"/"].lastObject;
+    if (!vehicleID) {
+      errorToPropagate = GRSDError(kProviderErrorCode, kInvalidVehicleNameDescription);
+    } else {
+      GRSDVehicleModel *updatedVehicle = GetVehicleModelFromJSONResponse(vehicleID, JSONResponse);
+      if (updatedVehicle) {
+        return updatedVehicle;
+      } else {
+        errorToPropagate = GRSDError(kProviderErrorCode, kErrorInvalidResponseDescription);
+      }
+    }
+  }
+
+  if (error) {
+    *error = errorToPropagate;
+  }
+  return nil;
+}
+
 - (void)createVehicleWithID:(NSString *)vehicleID
         isBackToBackEnabled:(BOOL)isBackToBackEnabled
                  completion:(GRSDCreateVehicleWithIDHandler)completion {
@@ -253,7 +328,7 @@ static GRSDVehicleModel *_Nullable GetVehicleModelFromJSONResponse(
     completion(nil, GRSDError(kProviderErrorCode, kInvalidRequestUrlDescription));
     return;
   }
-  NSURLRequest *request = GenerateJSONRequestWithMethod(kHTTPPostMethod, requestURL, payload);
+  NSURLRequest *request = GenerateJSONRequestWithMethod(kHTTPPOSTMethod, requestURL, payload);
   NSURLSessionDataTask *task = [self.session dataTaskWithRequest:request completionHandler:handler];
   [task resume];
 }
@@ -271,31 +346,60 @@ static GRSDVehicleModel *_Nullable GetVehicleModelFromJSONResponse(
   if (statusCode != kHTTPStatusOkCode) {
     completion(nil, GRSDError(kProviderErrorCode, kErrorCreatingVehicleDescription));
   } else {
-    // Write response to JSON object.
-    NSError *jsonParseError;
-    NSDictionary<NSString *, id> *jsonResponse =
-        [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&jsonParseError];
-    if (jsonParseError) {
-      completion(nil, jsonParseError);
-      return;
-    }
-
-    // Get vehicle name from response.
-    NSString *vehicleName = jsonResponse[kProviderDataKeyName];
-    // Provider returns fully qualified vehicle name in this form:
-    // 'providers/providerID/vehicles/vehicleID'. So strip provider ID from it.
-    NSString *vehicleID = [vehicleName componentsSeparatedByString:@"/"].lastObject;
-    if (!vehicleID) {
-      completion(nil, GRSDError(kProviderErrorCode, kInvalidVehicleNameDescription));
-      return;
-    }
-    GRSDVehicleModel *createdVehicle = GetVehicleModelFromJSONResponse(vehicleID, jsonResponse);
-    if (createdVehicle) {
-      completion(createdVehicle, nil);
-    } else {
-      completion(nil, GRSDError(kProviderErrorCode, kErrorInvalidResponseDescription));
-    }
+    NSError *processResponseError;
+    GRSDVehicleModel *vehicleModel = GetVehicleModelFromResponseData(data, &processResponseError);
+    completion(vehicleModel, processResponseError);
   }
+}
+
+- (void)updateVehicleWithModel:(GRSDVehicleModel *)vehicleModel
+                    completion:(GRSDUpdateVehicleHandler)completion {
+  if (!completion) {
+    NSAssert(NO, @"%s encountered an unexpected nil completion.", __PRETTY_FUNCTION__);
+    return;
+  }
+  if (!vehicleModel) {
+    NSString *invalidVehicleModelErrorDescription =
+        @"Encountered an unexpected invalid parameter (vehicleModel).";
+    completion(nil, GRSDError(kProviderErrorCode, invalidVehicleModelErrorDescription));
+    return;
+  }
+
+  __weak typeof(self) weakSelf = self;
+  void (^handler)(NSData *, NSURLResponse *, NSError *) =
+      ^(NSData *data, NSURLResponse *response, NSError *error) {
+        [weakSelf handleUpdateVehicleResponseWithData:data
+                                             response:response
+                                                error:error
+                                           completion:completion];
+      };
+  NSDictionary<NSString *, id> *payload = GetJSONDictionaryFromVehicleModel(vehicleModel);
+  NSURL *requestURL = GenerateUpdateVehicleURL(vehicleModel.vehicleID);
+  if (!requestURL) {
+    completion(nil, GRSDError(kProviderErrorCode, kInvalidRequestUrlDescription));
+    return;
+  }
+  NSURLRequest *request = GenerateJSONRequestWithMethod(kHTTPPUTMethod, requestURL, payload);
+  NSURLSessionDataTask *task = [self.session dataTaskWithRequest:request completionHandler:handler];
+  [task resume];
+}
+
+- (void)handleUpdateVehicleResponseWithData:(NSData *)data
+                                   response:(NSURLResponse *)response
+                                      error:(NSError *)error
+                                 completion:(GRSDUpdateVehicleHandler)completion {
+  if (error) {
+    completion(nil, error);
+    return;
+  }
+  NSInteger statusCode = [(NSHTTPURLResponse *)response statusCode];
+  if (statusCode != kHTTPStatusOkCode) {
+    completion(nil, GRSDError(kProviderErrorCode, kErrorUpdatingVehicleDescription));
+    return;
+  }
+  NSError *processResponseError;
+  GRSDVehicleModel *vehicleModel = GetVehicleModelFromResponseData(data, &processResponseError);
+  completion(vehicleModel, processResponseError);
 }
 
 - (void)fetchTripWithID:(NSString *)tripID completion:(GRSDFetchTripHandler)completion {
@@ -325,7 +429,7 @@ static GRSDVehicleModel *_Nullable GetVehicleModelFromJSONResponse(
   }
 
   NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:requestURL];
-  request.HTTPMethod = kHTTPGetMethod;
+  request.HTTPMethod = kHTTPGETMethod;
   NSURLSessionDataTask *task = [self.session dataTaskWithRequest:request completionHandler:handler];
 
   [task resume];
@@ -502,7 +606,7 @@ static GRSDVehicleModel *_Nullable GetVehicleModelFromJSONResponse(
   }
 
   NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:requestURL];
-  request.HTTPMethod = kHTTPGetMethod;
+  request.HTTPMethod = kHTTPGETMethod;
   NSURLSessionDataTask *task = [self.session dataTaskWithRequest:request
                                                completionHandler:handler];
   [task resume];
@@ -598,7 +702,7 @@ static GRSDVehicleModel *_Nullable GetVehicleModelFromJSONResponse(
       };
 
   NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:requestURL];
-  request.HTTPMethod = kHTTPGetMethod;
+  request.HTTPMethod = kHTTPGETMethod;
   NSURLSessionDataTask *task = [self.session dataTaskWithRequest:request
                                                completionHandler:tokenResponseHandler];
   [task resume];

@@ -92,6 +92,17 @@ typedef void (^GRSDFetchVehicleHandler)(NSArray<NSString *> *_Nullable matchedTr
                                         NSError *_Nullable error);
 
 /**
+ * Callback block definition of updating a vehicle.
+ *
+ * @param vehicleModel The model representing the updated vehicle. It is nil if there's an error
+ * updating a vehicle with the provider.
+ * @param error Error when updating a vehicle with the provider. It is nil if updating a vehicle
+ * with the provider succeeds.
+ */
+typedef void (^GRSDUpdateVehicleHandler)(GRSDVehicleModel *_Nullable vehicleModel,
+                                         NSError *_Nullable error);
+
+/**
  * Creates a new vehicle with the provider.
  *
  * @param vehicleID The vehicle ID associated with the driver.
@@ -101,6 +112,15 @@ typedef void (^GRSDFetchVehicleHandler)(NSArray<NSString *> *_Nullable matchedTr
 - (void)createVehicleWithID:(NSString *)vehicleID
         isBackToBackEnabled:(BOOL)isBackToBackEnabled
                  completion:(GRSDCreateVehicleWithIDHandler)completion;
+
+/**
+ * Updates an existing vehicle to reflect the given @c vehicleModel.
+ *
+ * @param vehicleModel The vehicle model with updated vehicle fields.
+ * @param completion The block executed when the request finishes.
+ */
+- (void)updateVehicleWithModel:(GRSDVehicleModel *)vehicleModel
+                    completion:(GRSDUpdateVehicleHandler)completion;
 
 /**
  * Fetches trip details for the given trip ID.

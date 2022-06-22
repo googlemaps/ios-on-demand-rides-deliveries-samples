@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		5F55A7691E0B8A608C48B42A /* Pods_DriverSampleApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8E40FEA95095E3CA92A9618D /* Pods_DriverSampleApp.framework */; };
+		3B3BEAFF28629EE700CAFE69 /* GRSDEditVehicleTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3B3BEAFD28629EE700CAFE69 /* GRSDEditVehicleTableViewController.m */; };
+		3BD7196E28629F3400D40AE3 /* GRSDVehicleModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 3BD7196D28629F3400D40AE3 /* GRSDVehicleModel.m */; };
 		EE05992127067ED700605B6C /* GRSDAPIConstants.m in Sources */ = {isa = PBXBuildFile; fileRef = EE05992327067ED700605B6C /* GRSDAPIConstants.m */; };
 		EE05993227067ED700605B6C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EE05992427067ED700605B6C /* Assets.xcassets */; };
 		EE05993327067ED700605B6C /* GRSDViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = EE05992727067ED700605B6C /* GRSDViewController.m */; };
@@ -26,7 +28,11 @@
 		EE05992327067ED700605B6C /* GRSDAPIConstants.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GRSDAPIConstants.m; sourceTree = "<group>"; };
 		EE05992427067ED700605B6C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		EE05992527067ED700605B6C /* GRSDBottomPanelView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GRSDBottomPanelView.h; sourceTree = "<group>"; };
+		3B3BEAFD28629EE700CAFE69 /* GRSDEditVehicleTableViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GRSDEditVehicleTableViewController.m; sourceTree = "<group>"; };
+		3B3BEAFE28629EE700CAFE69 /* GRSDEditVehicleTableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GRSDEditVehicleTableViewController.h; sourceTree = "<group>"; };
 		EE05992627067ED700605B6C /* GRSDProviderService.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GRSDProviderService.h; sourceTree = "<group>"; };
+		3BD7196C28629F3400D40AE3 /* GRSDVehicleModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GRSDVehicleModel.h; sourceTree = "<group>"; };
+		3BD7196D28629F3400D40AE3 /* GRSDVehicleModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GRSDVehicleModel.m; sourceTree = "<group>"; };
 		EE05992727067ED700605B6C /* GRSDViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GRSDViewController.m; sourceTree = "<group>"; };
 		EE05992827067ED700605B6C /* GRSDAppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GRSDAppDelegate.m; sourceTree = "<group>"; };
 		EE05992927067ED700605B6C /* GRSDBottomPanelView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GRSDBottomPanelView.m; sourceTree = "<group>"; };
@@ -97,8 +103,12 @@
 				EE05992827067ED700605B6C /* GRSDAppDelegate.m */,
 				EE05992527067ED700605B6C /* GRSDBottomPanelView.h */,
 				EE05992927067ED700605B6C /* GRSDBottomPanelView.m */,
+				3B3BEAFE28629EE700CAFE69 /* GRSDEditVehicleTableViewController.h */,
+				3B3BEAFD28629EE700CAFE69 /* GRSDEditVehicleTableViewController.m */,
 				EE05992627067ED700605B6C /* GRSDProviderService.h */,
 				EE05992A27067ED700605B6C /* GRSDProviderService.m */,
+				3BD7196C28629F3400D40AE3 /* GRSDVehicleModel.h */,
+				3BD7196D28629F3400D40AE3 /* GRSDVehicleModel.m */,
 				EE05993027067ED700605B6C /* GRSDViewController.h */,
 				EE05992727067ED700605B6C /* GRSDViewController.m */,
 				EE05993127067ED700605B6C /* Info.plist */,
@@ -233,6 +243,8 @@
 				EE05992127067ED700605B6C /* GRSDAPIConstants.m in Sources */,
 				EE05993427067ED700605B6C /* GRSDAppDelegate.m in Sources */,
 				EE05993527067ED700605B6C /* GRSDBottomPanelView.m in Sources */,
+				3B3BEAFF28629EE700CAFE69 /* GRSDEditVehicleTableViewController.m in Sources */,
+				3BD7196E28629F3400D40AE3 /* GRSDVehicleModel.m in Sources */,
 				EE05993327067ED700605B6C /* GRSDViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
