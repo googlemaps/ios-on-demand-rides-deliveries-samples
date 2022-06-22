@@ -105,7 +105,6 @@ static NSString *const kDriverCreationFailedAlertRetryTitle = @"Retry";
   /** Panel view used to control driver actions. */
   GRSDBottomPanelView *_bottomPanel;
   GRSDProviderService *_providerService;
-  NSString *_currentVehicleID;
   GMTDVehicleReporter *_vehicleReporter;
   NSTimer *_pollFetchVehicleTimer;
   BOOL _isFetchVehicleInProgress;
@@ -115,6 +114,7 @@ static NSString *const kDriverCreationFailedAlertRetryTitle = @"Retry";
   BOOL _isVehicleOnline;
   NSUInteger _currentIntermediateDestinationIndex;
   NSString *_backToBackNextTripID;
+  GRSDVehicleModel *_currentVehicleModel;
 }
 
 - (void)viewDidLoad {
@@ -160,6 +160,23 @@ static NSString *const kDriverCreationFailedAlertRetryTitle = @"Retry";
   self.navigationController.navigationBar.barTintColor = DefaultNavigationBarColor();
   self.navigationController.navigationBar.translucent = NO;
   self.navigationController.navigationBar.barStyle = UIBarStyleBlack;
+  self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc]
+      initWithBarButtonSystemItem:UIBarButtonSystemItemEdit
+                           target:self
+                           action:@selector(didTapNavigationBarButtonEditVehicle)];
+}
+
+- (void)didTapNavigationBarButtonEditVehicle {
+  if (_currentVehicleModel) {
+    GRSDEditVehicleTableViewController *editVehicleController =
+        [[GRSDEditVehicleTableViewController alloc] initWithVehicleModel:_currentVehicleModel];
+    editVehicleController.delegate = self;
+    UINavigationController *navigationController =
+        [[UINavigationController alloc] initWithRootViewController:editVehicleController];
+    [self presentViewController:navigationController animated:YES completion:nil];
+  } else {
+    NSLog(@"Error: Vehicle must be created before editing.");
+  }
 }
 
 - (void)setUpContentStackView {
@@ -326,19 +343,13 @@ static NSString *const kDriverCreationFailedAlertRetryTitle = @"Retry";
     return;
   }
 
-  if (!vehicleModel) {
-    return;
-  }
-
-  NSString *vehicleID = vehicleModel.vehicleID;
-
-  if (vehicleID.length == 0) {
+  if (!vehicleModel || vehicleModel.vehicleID.length == 0) {
     completion(NO);
     return;
   }
+  _currentVehicleModel = vehicleModel;
 
-  _currentVehicleID = vehicleID;
-  self.title = [NSString stringWithFormat:@"Vehicle ID: %@", vehicleID];
+  self.title = [NSString stringWithFormat:@"Vehicle ID: %@", _currentVehicleModel.vehicleID];
 
   // Set up Driver SDK.
   GRSDProviderService *providerService = _providerService;
@@ -350,7 +361,7 @@ static NSString *const kDriverCreationFailedAlertRetryTitle = @"Retry";
   GMTDDriverContext *driverContext =
       [[GMTDDriverContext alloc] initWithAccessTokenProvider:providerService
                                                   providerID:kProviderID
-                                                   vehicleID:vehicleID
+                                                   vehicleID:_currentVehicleModel.vehicleID
                                                    navigator:_mapView.navigator];
   GMTDRidesharingDriverAPI *driverAPI =
       [[GMTDRidesharingDriverAPI alloc] initWithDriverContext:driverContext];
@@ -365,6 +376,18 @@ static NSString *const kDriverCreationFailedAlertRetryTitle = @"Retry";
   [_mapView.roadSnappedLocationProvider stopUpdatingLocation];
   [_mapView.roadSnappedLocationProvider startUpdatingLocation];
   completion(YES);
+}
+
+- (void)updateVehicleWithModel:(GRSDVehicleModel *)vehicleModel {
+  [_providerService
+      updateVehicleWithModel:vehicleModel
+                  completion:^(GRSDVehicleModel *_Nullable vehicleModel, NSError *_Nullable error) {
+                    if (error) {
+                      NSLog(@"Failed to update vehicle: %@", error.localizedDescription);
+                      return;
+                    }
+                    _currentVehicleModel = vehicleModel;
+                  }];
 }
 
 /* Starts polling for vehicle details. */
@@ -384,7 +407,7 @@ static NSString *const kDriverCreationFailedAlertRetryTitle = @"Retry";
   }
 
   // Stop polling if there's already a current and next trip assigned.
-  if (_currentTripID && _backToBackNextTripID) {
+  if (_currentVehicleModel && _backToBackNextTripID) {
     [_pollFetchVehicleTimer invalidate];
     return;
   }
@@ -392,7 +415,7 @@ static NSString *const kDriverCreationFailedAlertRetryTitle = @"Retry";
   _isFetchVehicleInProgress = YES;
 
   __weak typeof(self) weakSelf = self;
-  [_providerService fetchVehicleWithID:_currentVehicleID
+  [_providerService fetchVehicleWithID:_currentVehicleModel.vehicleID
                             completion:^(NSArray<NSString *> *_Nullable matchedTripIds,
                                          NSError *_Nullable error) {
                               [weakSelf handleFetchVehicleResponseWithMatchedTripIds:matchedTripIds
@@ -797,6 +820,13 @@ static NSString *const kDriverCreationFailedAlertRetryTitle = @"Retry";
 - (void)navigator:(GMSNavigator *)navigator didArriveAtWaypoint:(GMSNavigationWaypoint *)waypoint {
   NSLog(@"GMSNavigatorListener - didArriveAtWaypoint: Latitude %f, Longitude %f",
         waypoint.coordinate.latitude, waypoint.coordinate.longitude);
+}
+
+#pragma mark - GRSDEditVehicleTableViewControllerDelegate
+
+- (void)editVehicleTableViewController:(GRSDEditVehicleTableViewController *)controller
+                didChangeVehicleFields:(GRSDVehicleModel *)vehicleModel {
+  [self updateVehicleWithModel:vehicleModel];
 }
 
 @end

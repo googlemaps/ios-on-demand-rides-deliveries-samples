@@ -17,10 +17,12 @@
 #import <UIKit/UIKit.h>
 
 #import <GoogleRidesharingDriver/GoogleRidesharingDriver.h>
+#import "GRSDEditVehicleTableViewController.h"
 
 @interface GRSDViewController : UIViewController <GMTDVehicleReporterListener,
                                                   GMSMapViewDelegate,
                                                   GMSNavigatorListener,
-                                                  GMSRoadSnappedLocationProviderListener>
+                                                  GMSRoadSnappedLocationProviderListener,
+                                                  GRSDEditVehicleTableViewControllerDelegate>
 
 @end
