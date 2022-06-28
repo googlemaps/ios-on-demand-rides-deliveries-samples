@@ -96,9 +96,19 @@ FOUNDATION_EXTERN NSString *const GRSCBottomPanelEnrouteToIntermediateDestinatio
 FOUNDATION_EXTERN NSString *const GRSCBottomPanelArrivedAtIntermediateDestinationTitleText;
 
 /**
- * Driver is completing another trip title text.
+ * Driver is picking up another rider title text.
  */
-FOUNDATION_EXTERN NSString *const GRSCBottomPanelDriverCompletingAnotherTripTitleText;
+FOUNDATION_EXTERN NSString *const GRSCBottomPanelDriverPickingAnotherRiderUpText;
+
+/**
+ * Driver is dropping off another rider title text.
+ */
+FOUNDATION_EXTERN NSString *const GRSCBottomPanelDriverDroppingAnotherRiderOffText;
+
+/**
+ * Driver is stopping for another rider text.
+ */
+FOUNDATION_EXTERN NSString *const GRSCBottomPanelDriverStoppingForAnotherRiderText;
 
 /**
  * Text displayed on the bottom panel for the Shared trip type label.

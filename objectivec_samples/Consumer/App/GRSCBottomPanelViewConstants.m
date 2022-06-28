@@ -34,8 +34,12 @@ NSString *const GRSCBottomPanelArrivedAtIntermediateDestinationTitleText =
     @"Arrived at intermediate stop";
 NSString *const GRSCBottomPanelEnrouteToDropoffTitleText = @"Driving to dropoff";
 NSString *const GRSCBottomPanelTripCompleteTitleText = @"Trip Complete";
-NSString *const GRSCBottomPanelDriverCompletingAnotherTripTitleText =
-    @"Driver is completing another trip";
+NSString *const GRSCBottomPanelDriverPickingAnotherRiderUpText =
+    @"Driver is picking another rider up";
+NSString *const GRSCBottomPanelDriverDroppingAnotherRiderOffText =
+    @"Driver is dropping another rider off";
+NSString *const GRSCBottomPanelDriverStoppingForAnotherRiderText =
+    @"Driver is stopping for another rider";
 
 // Bottom panel location constants.
 NSString *const GRSCBottomPanelPickupLocationText = @"pickup location";

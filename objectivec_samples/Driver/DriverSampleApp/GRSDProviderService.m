@@ -295,6 +295,42 @@ static GRSDVehicleModel *_Nullable GetVehicleModelFromResponseData(NSData *data,
   return nil;
 }
 
+/** Returns an array of @c GMTSTripWaypoint objects from a given JSON response. */
+static NSArray<GMTSTripWaypoint *> *_Nullable GetTripWaypointsFromJSONResponse(
+    NSDictionary<NSString *, id> *response) {
+  // Note: Relaxed type and parsing error checks here since this is a sample app.
+  NSArray<NSDictionary<NSString *, id> *> *waypointsJSON = response[kProviderDataKeyWaypoints];
+  if (!waypointsJSON) {
+    return nil;
+  }
+  NSMutableArray<GMTSTripWaypoint *> *waypoints = [[NSMutableArray alloc] init];
+  for (NSDictionary<NSString *, id> *waypointJSON in waypointsJSON) {
+    NSString *tripID = waypointJSON[kProviderDataKeyTripID];
+    NSDictionary<NSString *, id> *locationJSON = waypointJSON[kProviderDataKeyLocation];
+    NSDictionary<NSString *, id> *pointJSON = locationJSON[kProviderDataKeyPoint];
+    NSString *waypointTypeString = waypointJSON[kProviderDataKeyWaypointType];
+    NSNumber *latitude = pointJSON[kProviderDataKeyLatitude];
+    NSNumber *longitude = pointJSON[kProviderDataKeyLongitude];
+    GMTSLatLng *latlng = [[GMTSLatLng alloc] initWithLatitude:latitude.doubleValue
+                                                    longitude:longitude.doubleValue];
+    GMTSTerminalLocation *terminalLocation = [[GMTSTerminalLocation alloc] initWithPoint:latlng
+                                                                                   label:nil
+                                                                             description:nil
+                                                                                 placeID:nil
+                                                                             generatedID:nil
+                                                                           accessPointID:nil];
+
+    GMTSTripWaypointType waypointType = GetTripWaypointTypeFromString(waypointTypeString);
+    GMTSTripWaypoint *waypoint = [[GMTSTripWaypoint alloc] initWithLocation:terminalLocation
+                                                                     tripID:tripID
+                                                               waypointType:waypointType
+                                         distanceToPreviousWaypointInMeters:0
+                                                                        ETA:0];
+    [waypoints addObject:waypoint];
+  }
+  return waypoints;
+}
+
 - (void)createVehicleWithID:(NSString *)vehicleID
         isBackToBackEnabled:(BOOL)isBackToBackEnabled
                  completion:(GRSDCreateVehicleWithIDHandler)completion {
@@ -477,33 +513,7 @@ static GRSDVehicleModel *_Nullable GetVehicleModelFromResponseData(NSData *data,
     return;
   }
   NSString *tripStatus = tripResponse[kProviderDataKeyTripStatus];
-
-  // Note: Relaxed type and parsing error checks here since this is a sample app.
-  NSMutableArray<GMTSTripWaypoint *> *waypoints = [NSMutableArray array];
-  NSArray<NSDictionary<NSString *, id> *> *waypointsJSON = tripResponse[kProviderDataKeyWaypoints];
-  for (NSDictionary<NSString *, id> *waypointJSON in waypointsJSON) {
-    NSDictionary<NSString *, id> *locationJSON = waypointJSON[kProviderDataKeyLocation];
-    NSDictionary<NSString *, id> *pointJSON = locationJSON[kProviderDataKeyPoint];
-    NSString *waypointTypeString = waypointJSON[kProviderDataKeyWaypointType];
-    NSNumber *latitude = pointJSON[kProviderDataKeyLatitude];
-    NSNumber *longitude = pointJSON[kProviderDataKeyLongitude];
-    GMTSLatLng *latlng = [[GMTSLatLng alloc] initWithLatitude:latitude.doubleValue
-                                                    longitude:longitude.doubleValue];
-    GMTSTerminalLocation *terminalLocation = [[GMTSTerminalLocation alloc] initWithPoint:latlng
-                                                                                   label:nil
-                                                                             description:nil
-                                                                                 placeID:nil
-                                                                             generatedID:nil
-                                                                           accessPointID:nil];
-
-    GMTSTripWaypointType waypointType = GetTripWaypointTypeFromString(waypointTypeString);
-    GMTSTripWaypoint *waypoint = [[GMTSTripWaypoint alloc] initWithLocation:terminalLocation
-                                                                     tripID:tripID
-                                                               waypointType:waypointType
-                                         distanceToPreviousWaypointInMeters:0
-                                                                        ETA:0];
-    [waypoints addObject:waypoint];
-  }
+  NSArray<GMTSTripWaypoint *> *waypoints = GetTripWaypointsFromJSONResponse(tripResponse);
 
   completion(tripID, tripStatus, [waypoints copy], nil);
 }
@@ -586,7 +596,7 @@ static GRSDVehicleModel *_Nullable GetVehicleModelFromResponseData(NSData *data,
   if (!vehicleID || vehicleID.length == 0) {
     NSString *kVehicleIDMissingDescription =
         @"Encountered an unexpected invalid parameter (vehicleID).";
-    completion(nil, GRSDError(kProviderErrorCode, kVehicleIDMissingDescription));
+    completion(nil, nil, GRSDError(kProviderErrorCode, kVehicleIDMissingDescription));
     return;
   }
 
@@ -601,7 +611,7 @@ static GRSDVehicleModel *_Nullable GetVehicleModelFromResponseData(NSData *data,
 
   NSURL *requestURL = GenerateGetVehicleURL(vehicleID);
   if (!requestURL) {
-    completion(nil, GRSDError(kProviderErrorCode, kInvalidRequestUrlDescription));
+    completion(nil, nil, GRSDError(kProviderErrorCode, kInvalidRequestUrlDescription));
     return;
   }
 
@@ -617,19 +627,19 @@ static GRSDVehicleModel *_Nullable GetVehicleModelFromResponseData(NSData *data,
                                      error:(NSError *)error
                                 completion:(GRSDFetchVehicleHandler)completion {
   if (error) {
-    completion(nil, error);
+    completion(nil, nil, error);
     return;
   }
 
   NSInteger statusCode = [(NSHTTPURLResponse *)response statusCode];
   if (statusCode != kHTTPStatusOkCode) {
-    completion(nil, GRSDError(kProviderErrorCode, kErrorFetchingVehicleDescription));
+    completion(nil, nil, GRSDError(kProviderErrorCode, kErrorFetchingVehicleDescription));
     return;
   }
 
   // The provider sends empty data if this vehicle doesn't exist.
   if (data.length == 0) {
-    completion(nil, nil);
+    completion(nil, nil, nil);
     return;
   }
 
@@ -638,12 +648,13 @@ static GRSDVehicleModel *_Nullable GetVehicleModelFromResponseData(NSData *data,
   NSDictionary<NSString *, id> *jsonResponse =
       [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&jsonParseError];
   if (jsonParseError) {
-    completion(nil, jsonParseError);
+    completion(nil, nil, jsonParseError);
     return;
   }
 
   NSArray *currentTripIDs = jsonResponse[kProviderDataKeyCurrentTripIDs];
-  completion(currentTripIDs, nil);
+  NSArray<GMTSTripWaypoint *> *waypoints = GetTripWaypointsFromJSONResponse(jsonResponse);
+  completion(currentTripIDs, waypoints, nil);
 }
 
 #pragma mark - GMTDAuthorization
