@@ -682,17 +682,53 @@ typedef NS_ENUM(NSUInteger, GRSCMapViewCustomerState) {
 }
 
 /**
- * Updates the panel to reflect assigned driver is finishing another trip
- * and displays a marker for previous trip dropoff.
+ * Updates the panel to reflect assigned driver is in another trip
+ * and displays a marker for the other trip's waypoint.
  */
 - (void)handleOtherTripWaypoint:(GMTSTripWaypoint *)waypoint {
-  _bottomPanel.titleLabel.text = GRSCBottomPanelDriverCompletingAnotherTripTitleText;
+  if (waypoint.waypointType == GMTSTripWaypointTypePickUp) {
+    _bottomPanel.titleLabel.text = GRSCBottomPanelDriverPickingAnotherRiderUpText;
+  } else if (waypoint.waypointType == GMTSTripWaypointTypeIntermediateDestination) {
+    _bottomPanel.titleLabel.text = GRSCBottomPanelDriverStoppingForAnotherRiderText;
+  } else if (waypoint.waypointType == GMTSTripWaypointTypeDropOff) {
+    _bottomPanel.titleLabel.text = GRSCBottomPanelDriverDroppingAnotherRiderOffText;
+  }
 
-  // Add new marker for previous trip waypoint.
+  // Add a marker for this waypoint.
   [self removePreviousTripDropoffMarkerFromMap];
   _previousTripDropoffMarker = [GMSMarker markerWithPosition:waypoint.location.point.coordinate];
   _previousTripDropoffMarker.map = _mapView;
   _previousTripDropoffMarker.icon = [UIImage imageNamed:kIntermediateDestinationImageName];
+}
+
+/** Updates the bottom panel to reflect the given trip state. */
+- (void)updateBottomPanelForTripStatus:(GMTSTripStatus)tripStatus {
+  switch (tripStatus) {
+    case GMTSTripStatusNew:
+      _bottomPanel.titleLabel.text = GRSCBottomPanelWaitingForDriverMatchTitleText;
+      break;
+    case GMTSTripStatusEnrouteToPickup:
+      _bottomPanel.titleLabel.text = GRSCBottomPanelEnrouteToPickupTitleText;
+      break;
+    case GMTSTripStatusArrivedAtPickup:
+      _bottomPanel.titleLabel.text = GRSCBottomPanelArrivedAtPickupTitleText;
+      break;
+    case GMTSTripStatusEnrouteToIntermediateDestination:
+      _bottomPanel.titleLabel.text = GRSCBottomPanelEnrouteToIntermediateDestinationTitleText;
+      break;
+    case GMTSTripStatusArrivedAtIntermediateDestination:
+      _bottomPanel.titleLabel.text = GRSCBottomPanelArrivedAtIntermediateDestinationTitleText;
+      break;
+    case GMTSTripStatusEnrouteToDropoff:
+      _bottomPanel.titleLabel.text = GRSCBottomPanelEnrouteToDropoffTitleText;
+      break;
+    case GMTSTripStatusComplete:
+      _bottomPanel.titleLabel.text = GRSCBottomPanelTripCompleteTitleText;
+      break;
+    case GMTSTripStatusCanceled:
+    case GMTSTripStatusUnknown:
+      break;
+  }
 }
 
 /** Called when the list of remaining waypoint has been updated. */
@@ -703,6 +739,13 @@ typedef NS_ENUM(NSUInteger, GRSCMapViewCustomerState) {
   GMTSTripWaypoint *currentWaypoint = remainingWaypoints.firstObject;
   if (![currentWaypoint.tripID isEqualToString:currentTrip.tripID]) {
     [self handleOtherTripWaypoint:currentWaypoint];
+  } else {
+    // Bottom panel text may have changed when processing another trip's waypoint in a shared pool
+    // so update the bottom panel to reflect the current trip's status again.
+    [self updateBottomPanelForTripStatus:currentTrip.tripStatus];
+
+    // Remove marker from previous waypoint.
+    [self removePreviousTripDropoffMarkerFromMap];
   }
 }
 

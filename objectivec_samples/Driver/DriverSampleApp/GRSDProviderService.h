@@ -85,10 +85,12 @@ typedef void (^GRSDUpdateTripHandler)(NSString *_Nullable tripID, NSError *_Null
  * Callback block definition for fetching a vehicle
  *
  * @param matchedTripIDs The list of matched trip IDs for this vehicle.
+ * @param waypoints The list of waypoints for this vehicle.
  * @param error Error when fetching a vehicle from the provider. It is nil if fetching a vehicle
  * succeeds.
  */
 typedef void (^GRSDFetchVehicleHandler)(NSArray<NSString *> *_Nullable matchedTripIDs,
+                                        NSArray<GMTSTripWaypoint *> *_Nullable waypoints,
                                         NSError *_Nullable error);
 
 /**

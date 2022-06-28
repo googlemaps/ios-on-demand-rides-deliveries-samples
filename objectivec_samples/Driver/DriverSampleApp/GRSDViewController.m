@@ -55,6 +55,26 @@ static UIColor *ButtonEnabledColor(void) {
 static UIColor *PanelSeparatorColor(void) {
   return [UIColor colorWithRed:0 / 255.0 green:0 / 255.0 blue:0 / 255.0 alpha:0.24];
 }
+static const CGFloat kDefaultErrorMessageLabelAnimationAlpha = 0.0f;
+static const CGFloat kDefaultErrorMessageSpacing = 8.0f;
+static const CGFloat kDefaultErrorMessageCornerRadius = 8.0f;
+static const float kDefaultErrorMessageLabelInitialAlpha = 1.0;
+static const float kDefaultErrorMessageAutoFadeOutDuration = 10.0;
+
+/** Returns a styled message label. */
+static UILabel *CreateErrorMessageLabel(void) {
+  UILabel *messageLabel = [[UILabel alloc] init];
+  messageLabel.translatesAutoresizingMaskIntoConstraints = NO;
+  messageLabel.textColor = UIColor.redColor;
+  messageLabel.backgroundColor = [UIColor whiteColor];
+  messageLabel.numberOfLines = 0;
+  messageLabel.textAlignment = NSTextAlignmentCenter;
+  messageLabel.layer.cornerRadius = kDefaultErrorMessageCornerRadius;
+  messageLabel.clipsToBounds = YES;
+  messageLabel.hidden = YES;
+
+  return messageLabel;
+}
 
 /**
  * Callback block definition of creating a driver.
@@ -63,9 +83,16 @@ static UIColor *PanelSeparatorColor(void) {
  */
 typedef void (^GRSDCreateDriverHandler)(BOOL driverCreated);
 
+/**
+ * Callback block definition of fetching a trip state.
+ *
+ * @param tripState Whether the driver was created.
+ */
+typedef void (^GRSDFetchTripStateHandler)(NSString *_Nullable tripState);
+
 // Constants for bottom panel trip states.
 static NSString *const kTripIDLabel = @"Trip ID";
-static NSString *const kBackToBackNextTripIDLabel = @"Next Trip ID";
+static NSString *const kMatchedTripsIDLabelText = @"Matched Trips";
 static NSString *const kNewTripPanelTitle = @"New trip";
 static NSString *const kNewTripButtonTitle = @"Start Navigation";
 static NSString *const kEnrouteToPickupPanelTitle = @"Picking up rider";
@@ -83,6 +110,7 @@ static NSString *const kEnrouteToIntermediateDestinationButtonTitle =
     @"Arrived at intermediate stop";
 static NSString *const kCompletedTripPanelTitle = @"Trip completed";
 static NSString *const kCompletedTripButtonTitle = @"Trip completed";
+static NSString *const kTripCompletePanelTitle = @"Trip completed";
 
 // Strings for the 'Terms And Conditions Not Accepted' alert.
 static NSString *const kTermsAndConditionsDeniedAlertTitle = @"Terms And Conditions Not Accepted";
@@ -96,6 +124,49 @@ static NSString *const kDriverCreationFailedAlertDescription =
     @"An error occured while connecting to the provider backend.";
 static NSString *const kDriverCreationFailedAlertRetryTitle = @"Retry";
 
+/** Returns a @c GRSDTripState objects from a given string representation. */
+static GRSDTripState GetTripStateFromProviderString(NSString *tripStatus) {
+  if ([tripStatus isEqual:GRSDProviderServiceTripStatusEnrouteToPickup]) {
+    return GRSDTripStateEnrouteToPickup;
+  }
+  if ([tripStatus isEqual:GRSDProviderServiceTripStatusArrivedAtPickup]) {
+    return GRSDTripStateArrivedAtPickup;
+  }
+  if ([tripStatus isEqual:GRSDProviderServiceTripStatusEnrouteToIntermediateDestination]) {
+    return GRSDTripStateEnrouteToIntermediateDestination;
+  }
+  if ([tripStatus isEqual:GRSDProviderServiceTripStatusArrivedAtIntermediateDestination]) {
+    return GRSDTripStateArrivedAtIntermediateDestination;
+  }
+  if ([tripStatus isEqual:GRSDProviderServiceTripStatusEnrouteToDropoff]) {
+    return GRSDTripStateEnrouteToDropoff;
+  }
+  if ([tripStatus isEqual:GRSDProviderServiceTripStatusComplete]) {
+    return GRSDTripStateComplete;
+  }
+  return GRSDTripStateNew;
+}
+
+/** Returns the provider string representation of a given @c GRSDTripState. */
+static NSString *GetProviderStringFromTripState(GRSDTripState tripStatus) {
+  switch (tripStatus) {
+    case GRSDTripStateNew:
+      return GRSDProviderServiceTripStateNew;
+    case GRSDTripStateEnrouteToPickup:
+      return GRSDProviderServiceTripStatusEnrouteToPickup;
+    case GRSDTripStateArrivedAtPickup:
+      return GRSDProviderServiceTripStatusArrivedAtPickup;
+    case GRSDTripStateEnrouteToIntermediateDestination:
+      return GRSDProviderServiceTripStatusEnrouteToIntermediateDestination;
+    case GRSDTripStateArrivedAtIntermediateDestination:
+      return GRSDProviderServiceTripStatusArrivedAtIntermediateDestination;
+    case GRSDTripStateEnrouteToDropoff:
+      return GRSDProviderServiceTripStatusEnrouteToDropoff;
+    case GRSDTripStateComplete:
+      return GRSDProviderServiceTripStatusComplete;
+  }
+}
+
 @implementation GRSDViewController {
   CLLocationManager *_locationManager;
   /** View to hold the map and bottom panel views. */
@@ -108,13 +179,15 @@ static NSString *const kDriverCreationFailedAlertRetryTitle = @"Retry";
   GMTDVehicleReporter *_vehicleReporter;
   NSTimer *_pollFetchVehicleTimer;
   BOOL _isFetchVehicleInProgress;
-  NSMutableArray<GMTSTripWaypoint *> *_waypoints;
+  NSArray<GMTSTripWaypoint *> *_waypoints;
   NSString *_currentTripID;
   GRSDTripState _currentTripState;
   BOOL _isVehicleOnline;
-  NSUInteger _currentIntermediateDestinationIndex;
-  NSString *_backToBackNextTripID;
   GRSDVehicleModel *_currentVehicleModel;
+  NSMutableDictionary<NSString *, NSNumber *> *_tripIDToCurrentIntermediateDestinationIndex;
+  NSArray<NSString *> *_matchedTripIDs;
+  BOOL _shouldAutoDrive;
+  UILabel *_errorMessageLabel;
 }
 
 - (void)viewDidLoad {
@@ -128,10 +201,16 @@ static NSString *const kDriverCreationFailedAlertRetryTitle = @"Retry";
 
   _providerService = [[GRSDProviderService alloc] init];
 
+  _tripIDToCurrentIntermediateDestinationIndex = [[NSMutableDictionary alloc] init];
+  _shouldAutoDrive = NO;
+
   [self setUpNavigationBar];
   [self setUpContentStackView];
   [self setUpMapView];
   [self showTermsAndConditionsAndSetUpDriver];
+  _errorMessageLabel = CreateErrorMessageLabel();
+  [self.view addSubview:_errorMessageLabel];
+  [self anchorDisplayMessageLabel:_errorMessageLabel];
 }
 
 - (void)viewDidDisappear:(BOOL)animated {
@@ -148,6 +227,38 @@ static NSString *const kDriverCreationFailedAlertRetryTitle = @"Retry";
     [_pollFetchVehicleTimer invalidate];
     _pollFetchVehicleTimer = nil;
   }
+}
+
+#pragma mark - Error message functions
+
+- (void)displayAutoFadeOutErrorMessage:(NSString *)message {
+  [self displayErrorMessage:message withDuration:kDefaultErrorMessageAutoFadeOutDuration];
+}
+
+// A duration of <=0 signifies a display of forever.
+- (void)displayErrorMessage:(NSString *)message withDuration:(NSTimeInterval)duration {
+  _errorMessageLabel.text = message;
+  _errorMessageLabel.alpha = kDefaultErrorMessageLabelInitialAlpha;
+  _errorMessageLabel.hidden = NO;
+  if (duration > DBL_EPSILON) {
+    [UIView animateWithDuration:duration
+        animations:^{
+          _errorMessageLabel.alpha = kDefaultErrorMessageLabelAnimationAlpha;
+        }
+        completion:^(BOOL finished) {
+          _errorMessageLabel.hidden = YES;
+        }];
+  }
+}
+
+- (void)anchorDisplayMessageLabel:(UILabel *)label {
+  [NSLayoutConstraint activateConstraints:@[
+    [label.bottomAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.bottomAnchor],
+    [label.leadingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.leadingAnchor
+                                        constant:kDefaultErrorMessageSpacing],
+    [label.trailingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.trailingAnchor
+                                         constant:-kDefaultErrorMessageSpacing]
+  ]];
 }
 
 #pragma mark - Private helpers
@@ -406,86 +517,225 @@ static NSString *const kDriverCreationFailedAlertRetryTitle = @"Retry";
     return;
   }
 
-  // Stop polling if there's already a current and next trip assigned.
-  if (_currentVehicleModel && _backToBackNextTripID) {
-    [_pollFetchVehicleTimer invalidate];
-    return;
-  }
-
   _isFetchVehicleInProgress = YES;
 
   __weak typeof(self) weakSelf = self;
   [_providerService fetchVehicleWithID:_currentVehicleModel.vehicleID
                             completion:^(NSArray<NSString *> *_Nullable matchedTripIds,
+                                         NSArray<GMTSTripWaypoint *> *_Nullable waypoints,
                                          NSError *_Nullable error) {
                               [weakSelf handleFetchVehicleResponseWithMatchedTripIds:matchedTripIds
+                                                                           waypoints:waypoints
                                                                                error:error];
                             }];
 };
 
 /* Handles a response from a fetchVehicle provider request. */
 - (void)handleFetchVehicleResponseWithMatchedTripIds:(NSArray<NSString *> *)matchedTripIDs
+                                           waypoints:(NSArray<GMTSTripWaypoint *> *)waypoints
                                                error:(NSError *)error {
   _isFetchVehicleInProgress = NO;
-  if (error || !matchedTripIDs || !matchedTripIDs.count) {
-    // Keep polling if there are no trips found for this vehicle.
+  if (error || !matchedTripIDs || !matchedTripIDs.count || !waypoints.count) {
+    _matchedTripIDs = nil;
+    _waypoints = nil;
     return;
   }
-  // Stop polling as trip data has been found for this vehicle.
-  [_pollFetchVehicleTimer invalidate];
 
-  // Update current trip ID to the first trip ID in the assigned trips list.
-  if (!_currentTripID) {
-    _currentTripID = [matchedTripIDs[0] copy];
-    _currentTripState = GRSDTripStateNew;
-    [self handleNewTrip];
+  GMTSTripWaypoint *firstWaypoint = waypoints[0];
+  if (![_waypoints[0] isEqual:firstWaypoint]) {
+    _waypoints = waypoints;
+    [self stopNavigation];
+    [self setNextWaypointAsTheDestination];
   }
-  if (matchedTripIDs.count == 2) {
-    _backToBackNextTripID = [matchedTripIDs[1] copy];
+
+  if (![_currentTripID isEqualToString:firstWaypoint.tripID]) {
+    _currentTripID = firstWaypoint.tripID;
+    __weak typeof(self) weakSelf = self;
+    [self fetchStateForCurrentTripWithCompletion:^(NSString *_Nullable tripState) {
+      typeof(self) strongSelf = weakSelf;
+      if (!strongSelf) {
+        return;
+      }
+      if (tripState) {
+        _currentTripState = GetTripStateFromProviderString(tripState);
+        if (_currentTripState == GRSDTripStateNew) {
+          // Guard against action button being clicked before destination is reached for SHARED
+          // pool.
+          [self stopNavigation];
+          strongSelf->_shouldAutoDrive = NO;
+        } else if (_currentTripState == GRSDTripStateEnrouteToDropoff) {
+          strongSelf->_shouldAutoDrive = YES;
+        }
+        [strongSelf updateViewsForCurrentState];
+      }
+    }];
+  }
+
+  // Update bottom panel if other trips are assigned to this vehicle.
+  _matchedTripIDs = matchedTripIDs;
+  if (matchedTripIDs.count > 1) {
+    NSString *matchedTripsDisplayText = [matchedTripIDs componentsJoinedByString:@"\n"];
     _bottomPanel.nextTripIDLabel.text =
-        [NSString stringWithFormat:@"%@: %@", kBackToBackNextTripIDLabel, _backToBackNextTripID];
+        [NSString stringWithFormat:@"%@: %@", kMatchedTripsIDLabelText, matchedTripsDisplayText];
     _bottomPanel.nextTripIDLabel.hidden = NO;
+  } else {
+    _bottomPanel.nextTripIDLabel.hidden = YES;
   }
 }
 
-/* Displays the new trip details in the bottom panel. */
-- (void)displayNewTrip {
+/* Fetches the latest state for the current trip. */
+- (void)fetchStateForCurrentTripWithCompletion:(GRSDFetchTripStateHandler)completion {
+  __weak typeof(self) weakSelf = self;
+  [_providerService
+      fetchTripWithID:_currentTripID
+           completion:^(NSString *_Nullable tripID, NSString *_Nullable tripStatus,
+                        NSArray<GMTSTripWaypoint *> *_Nullable waypoints,
+                        NSError *_Nullable error) {
+             typeof(self) strongSelf = weakSelf;
+             if (!strongSelf) {
+               return;
+             }
+             if (error) {
+               NSLog(@"Failed to get trip details with error: %@", error);
+               completion(nil);
+               return;
+             }
+
+             // Process intermediate destinations if trip has them and has not been seen before.
+             if (![strongSelf->_tripIDToCurrentIntermediateDestinationIndex objectForKey:tripID] &&
+                 waypoints.count > 2) {
+               [strongSelf->_tripIDToCurrentIntermediateDestinationIndex
+                   setObject:[NSNumber numberWithInt:0]
+                      forKey:tripID];
+             }
+             completion(tripStatus);
+           }];
+}
+
+/* Updates the UI to reflect a trip with state NEW. */
+- (void)displayNewTripState {
+  _bottomPanel.titleLabel.text = kNewTripPanelTitle;
+  [_bottomPanel.actionButton setTitle:kNewTripButtonTitle forState:UIControlStateNormal];
+  [self setNextWaypointAsTheDestination];
+}
+
+/* Updates the UI to reflect a trip with state ENROUTE_TO_PICKUP. */
+- (void)displayEnrouteToPickupState {
+  _bottomPanel.titleLabel.text = kEnrouteToPickupPanelTitle;
+  [_bottomPanel.actionButton setTitle:kEnrouteToPickupButtonTitle forState:UIControlStateNormal];
+}
+
+/* Updates the UI to reflect a trip with state ARRIVED_AT_PICKUP. */
+- (void)displayArrivedAtPickupState {
+  _bottomPanel.titleLabel.text = kArrivedAtPickupPanelTitle;
+  GRSDTripState nextTripState = [self nextStateForCurrentTrip];
+  NSString *actionButtonTitle = nextTripState == GRSDTripStateEnrouteToIntermediateDestination
+                                    ? kDriveToIntermediateStopButtonTitle
+                                    : kDriveToDropoffButtonTitle;
+  [_bottomPanel.actionButton setTitle:actionButtonTitle forState:UIControlStateNormal];
+}
+
+/* Updates the UI to reflect a trip with state ENROUTE_TO_INTERMEDIATE_DESTINATION. */
+- (void)displayEnrouteToIntermediateDestinationState {
+  _bottomPanel.titleLabel.text = kEnrouteToIntermediateDestinationPanelTitle;
+  [_bottomPanel.actionButton setTitle:kEnrouteToIntermediateDestinationButtonTitle
+                             forState:UIControlStateNormal];
+}
+/* Updates the UI to reflect a trip with state ARRIVED_AT_INTERMEDIATE_DESTINATION. */
+- (void)displayArrivedIntermediateDestinationState {
+  _bottomPanel.titleLabel.text = kArrivedAtIntermediateDestinationPanelTitle;
+  GRSDTripState nextTripState = [self nextStateForCurrentTrip];
+  NSString *actionButtonTitle = nextTripState == GRSDTripStateEnrouteToIntermediateDestination
+                                    ? kDriveToIntermediateStopButtonTitle
+                                    : kDriveToDropoffButtonTitle;
+  [_bottomPanel.actionButton setTitle:actionButtonTitle forState:UIControlStateNormal];
+}
+
+/* Updates the UI to reflect a trip with state ENROUTE_TO_DROPOFF. */
+- (void)displayEnrouteToDropoffState {
+  _bottomPanel.titleLabel.text = kEnrouteToDropoffPanelTitle;
+  [_bottomPanel.actionButton setTitle:kEnrouteToDropoffButtonTitle forState:UIControlStateNormal];
+}
+
+/* Updates the UI to reflect a trip with state COMPLETE. */
+- (void)displayTripCompleteState {
+  _bottomPanel.titleLabel.text = kTripCompletePanelTitle;
+  _bottomPanel.actionButton.hidden = YES;
+}
+
+/* Updates the UI to reflect the current trip state. */
+- (void)updateViewsForCurrentState {
   if (_bottomPanel) {
     _bottomPanel.hidden = NO;
     _bottomPanel.actionButton.hidden = NO;
-    _bottomPanel.titleLabel.text = kNewTripPanelTitle;
-    [_bottomPanel.actionButton setTitle:kNewTripButtonTitle forState:UIControlStateNormal];
   } else {
     [self setUpBottomPanel];
   }
   _bottomPanel.tripIDLabel.text =
       [NSString stringWithFormat:@"%@: %@", kTripIDLabel, _currentTripID];
+
+  switch (_currentTripState) {
+    case GRSDTripStateNew:
+      [self displayNewTripState];
+      break;
+    case GRSDTripStateEnrouteToPickup:
+      [self displayEnrouteToPickupState];
+      break;
+    case GRSDTripStateArrivedAtPickup:
+      [self displayArrivedAtPickupState];
+      break;
+    case GRSDTripStateEnrouteToIntermediateDestination:
+      [self displayEnrouteToIntermediateDestinationState];
+      break;
+    case GRSDTripStateArrivedAtIntermediateDestination:
+      [self displayArrivedIntermediateDestinationState];
+      break;
+    case GRSDTripStateEnrouteToDropoff:
+      [self displayEnrouteToDropoffState];
+      break;
+    case GRSDTripStateComplete:
+      [self displayTripCompleteState];
+      break;
+  }
 }
 
-/* Handles a new trip by displaying the trip ID and updating waypoints. */
-- (void)handleNewTrip {
-  __weak typeof(self) weakSelf = self;
-
-  // Fetch trip details for the current Trip ID.
-  [_providerService fetchTripWithID:_currentTripID
-                         completion:^(NSString *_Nullable tripID, NSString *_Nullable tripStatus,
-                                      NSArray<GMTSTripWaypoint *> *_Nullable waypoints,
-                                      NSError *_Nullable error) {
-                           if (error) {
-                             NSLog(@"Failed to get trip details with error: %@", error);
-                             return;
-                           }
-                           [weakSelf handleFetchTripWithWaypoints:waypoints];
-                         }];
-
-  // Reset intermediate destinations index.
-  _currentIntermediateDestinationIndex = 0;
+- (GRSDTripState)nextStateForCurrentTrip {
+  GMTSTripWaypoint *nextWaypoint = [self nextWaypointForCurrentTrip];
+  switch (_currentTripState) {
+    case GRSDTripStateNew:
+      return GRSDTripStateEnrouteToPickup;
+    case GRSDTripStateEnrouteToPickup:
+      return GRSDTripStateArrivedAtPickup;
+    case GRSDTripStateArrivedAtPickup:
+      return (nextWaypoint &&
+              nextWaypoint.waypointType == GMTSTripWaypointTypeIntermediateDestination)
+                 ? GRSDTripStateEnrouteToIntermediateDestination
+                 : GRSDTripStateEnrouteToDropoff;
+    case GRSDTripStateEnrouteToIntermediateDestination:
+      return GRSDTripStateArrivedAtIntermediateDestination;
+    case GRSDTripStateArrivedAtIntermediateDestination:
+      return (nextWaypoint &&
+              nextWaypoint.waypointType == GMTSTripWaypointTypeIntermediateDestination)
+                 ? GRSDTripStateEnrouteToIntermediateDestination
+                 : GRSDTripStateEnrouteToDropoff;
+    case GRSDTripStateEnrouteToDropoff:
+      return GRSDTripStateComplete;
+    case GRSDTripStateComplete:
+      return GRSDTripStateComplete;
+  }
 }
 
-- (void)handleFetchTripWithWaypoints:(NSArray<GMTSTripWaypoint *> *)waypoints {
-  _waypoints = [waypoints mutableCopy];
-  [self displayNewTrip];
-  [self setNextWaypointAsTheDestination];
+- (GMTSTripWaypoint *)nextWaypointForCurrentTrip {
+  BOOL foundFirstWaypoint = NO;
+  for (GMTSTripWaypoint *tripWaypoint in _waypoints) {
+    if ([_currentTripID isEqualToString:tripWaypoint.tripID]) {
+      if (foundFirstWaypoint) {
+        return tripWaypoint;
+      }
+      foundFirstWaypoint = YES;
+    }
+  }
+  return nil;
 }
 
 /* Sets the next navigation destination to the first available waypoint. */
@@ -507,28 +757,14 @@ static NSString *const kDriverCreationFailedAlertRetryTitle = @"Retry";
                              }];
 }
 
-/**
- * Returns the button title to display for the next destination which can be dropoff or intermediate
- * stop.
- */
-- (nullable NSString *)getActionButtonTitleForNextDestination {
-  if (!_waypoints || !_waypoints.count) {
-    NSLog(@"Error: No waypoints available.");
-    return nil;
-  }
-
-  if (_waypoints[0].waypointType == GMTSTripWaypointTypeIntermediateDestination) {
-    return kDriveToIntermediateStopButtonTitle;
-  }
-
-  return kDriveToDropoffButtonTitle;
-}
-
 - (void)handleSetDestinationsResponseWithRouteStatus:(GMSRouteStatus)routeStatus {
   if (routeStatus == GMSRouteStatusOK) {
     // Enable the trip state button once the route is generated.
     _bottomPanel.actionButton.enabled = YES;
     _bottomPanel.actionButton.backgroundColor = ButtonEnabledColor();
+    if (_shouldAutoDrive) {
+      [self startNavigation];
+    }
   } else {
     NSLog(@"Error generating route.");
   }
@@ -547,10 +783,19 @@ static NSString *const kDriverCreationFailedAlertRetryTitle = @"Retry";
                               }];
 }
 
+- (void)stopNavigation {
+  _mapView.locationSimulator.paused = YES;
+  [_mapView.navigator clearDestinations];
+}
+
 - (void)handleUpdateTripResponseWithStatus:(NSString *)newStatus
                                     tripID:(NSString *)tripID
                                      error:(NSError *)error {
   if (error) {
+    [self displayAutoFadeOutErrorMessage:[NSString
+                                             stringWithFormat:@"Handle Update Trip Response With "
+                                                              @"Status - Update Failed:  Error: %@",
+                                                              error.localizedDescription]];
     return;
   }
 
@@ -558,164 +803,28 @@ static NSString *const kDriverCreationFailedAlertRetryTitle = @"Retry";
     return;
   }
 
-  if ([newStatus isEqual:GRSDProviderServiceTripStatusEnrouteToPickup]) {
-    _currentTripState = GRSDTripStateEnrouteToPickup;
+  _currentTripState = GetTripStateFromProviderString(newStatus);
+  if (_currentTripState == GRSDTripStateComplete) {
+    [self stopNavigation];
+    // Note: This timer is optional and it's used in this app for demonstration purposes.
+    [NSTimer scheduledTimerWithTimeInterval:5
+                                     target:self
+                                   selector:@selector(endCurrentVehicleSession)
+                                   userInfo:nil
+                                    repeats:NO];
   }
-  if ([newStatus isEqual:GRSDProviderServiceTripStatusArrivedAtPickup]) {
-    _currentTripState = GRSDTripStateArrivedAtPickup;
-  }
-  if ([newStatus isEqual:GRSDProviderServiceTripStatusEnrouteToIntermediateDestination]) {
-    _currentTripState = GRSDTripStateEnrouteToIntermediateDestination;
-  }
-  if ([newStatus isEqual:GRSDProviderServiceTripStatusArrivedAtIntermediateDestination]) {
-    _currentTripState = GRSDTripStateArrivedAtIntermediateDestination;
-  }
-  if ([newStatus isEqual:GRSDProviderServiceTripStatusEnrouteToDropoff]) {
-    _currentTripState = GRSDTripStateEnrouteToDropoff;
-  }
-  if ([newStatus isEqual:GRSDProviderServiceTripStatusComplete]) {
-    _currentTripState = GRSDTripStateComplete;
-
-    // if a next trip is available, switch to that trip.
-    if (_backToBackNextTripID) {
-      _currentTripID = [_backToBackNextTripID copy];
-      _currentTripState = GRSDTripStateNew;
-      _backToBackNextTripID = nil;
-      _bottomPanel.nextTripIDLabel.hidden = YES;
-      [self handleNewTrip];
-    } else {
-      // Wait 5 seconds to start polling for a new trip.
-      // Note: This timer is optional and it's used in this app for demonstration purposes.
-      [NSTimer scheduledTimerWithTimeInterval:5
-                                       target:self
-                                     selector:@selector(startPollingForTrip)
-                                     userInfo:nil
-                                      repeats:NO];
-    }
-  }
+  [self updateViewsForCurrentState];
 }
 
-- (void)startPollingForTrip {
-  _currentTripID = nil;
-  _backToBackNextTripID = nil;
-
-  // Hide bottom panel while driver waits for a new trip.
-  _bottomPanel.hidden = YES;
-
-  // Poll the provider to fetch the current vehicle state.
-  [self pollFetchVehicle];
-}
-
-- (void)changeToEnrouteToPickupState {
-  // Update bottom panel UI to reflect the "Enroute to pick-up" trip state.
-  _bottomPanel.titleLabel.text = kEnrouteToPickupPanelTitle;
-  [_bottomPanel.actionButton setTitle:kEnrouteToPickupButtonTitle forState:UIControlStateNormal];
-
-  // Start navigation and update trip state with the provider.
-  [self startNavigation];
-  [self updateTripWithStatus:GRSDProviderServiceTripStatusEnrouteToPickup
-      intermediateDestinationIndex:nil];
-}
-
-- (void)changeToArrivedAtPickupState {
-  // Update bottom panel UI to reflect the "Arrived at pick-up" trip state.
-  _bottomPanel.titleLabel.text = kArrivedAtPickupPanelTitle;
-
-  NSString *buttonTitle = [self getActionButtonTitleForNextDestination];
-  if (buttonTitle) {
-    [_bottomPanel.actionButton setTitle:buttonTitle forState:UIControlStateNormal];
-  }
-
-  // Update trip state with the provider.
-  [self updateTripWithStatus:GRSDProviderServiceTripStatusArrivedAtPickup
-      intermediateDestinationIndex:nil];
-
-  // Disable button until the route is generated by the navigator.
-  _bottomPanel.actionButton.enabled = NO;
-  _bottomPanel.actionButton.backgroundColor = UIColor.grayColor;
-
-  // Set the destination to the next available waypoint.
-  [self setNextWaypointAsTheDestination];
-}
-
-/**
- * Changes to the enroute to next stop state. Next stop could be an intermediate destination or the
- * final dropoff.
- */
-- (void)changeToEnrouteToNextStopState {
-  if (!_waypoints || !_waypoints.count) {
-    NSLog(@"Error: No waypoints found to route to.");
+- (void)endCurrentVehicleSession {
+  if (_matchedTripIDs.count) {
     return;
   }
 
-  if (_waypoints[0].waypointType == GMTSTripWaypointTypeIntermediateDestination) {
-    [self changeToEnrouteToIntermediateDestinationState];
-  } else {
-    [self changeToEnrouteToDropoffState];
-  }
-}
+  _currentTripID = nil;
 
-- (void)changeToEnrouteToIntermediateDestinationState {
-  // Update bottom panel UI to reflect the "Enroute to intermediate destination" trip state.
-  _bottomPanel.titleLabel.text = kEnrouteToIntermediateDestinationPanelTitle;
-  [_bottomPanel.actionButton setTitle:kEnrouteToIntermediateDestinationButtonTitle
-                             forState:UIControlStateNormal];
-
-  // Start navigation and update trip state with the provider.
-  [self startNavigation];
-  [self updateTripWithStatus:GRSDProviderServiceTripStatusEnrouteToIntermediateDestination
-      intermediateDestinationIndex:[NSNumber
-                                       numberWithInteger:_currentIntermediateDestinationIndex]];
-}
-
-- (void)changeToArrivedAtIntermediateDestinationState {
-  // Update bottom panel UI to reflect the "Arrived at Intermediate Destination" trip state.
-  _bottomPanel.titleLabel.text = kArrivedAtIntermediateDestinationPanelTitle;
-
-  NSString *buttonTitle = [self getActionButtonTitleForNextDestination];
-  if (buttonTitle) {
-    [_bottomPanel.actionButton setTitle:buttonTitle forState:UIControlStateNormal];
-  }
-
-  // Update trip state with the provider.
-  [self updateTripWithStatus:GRSDProviderServiceTripStatusArrivedAtIntermediateDestination
-      intermediateDestinationIndex:nil];
-
-  // Disable button until the route is generated by the navigator.
-  _bottomPanel.actionButton.enabled = NO;
-  _bottomPanel.actionButton.backgroundColor = UIColor.grayColor;
-
-  // Set the destination to the next available waypoint.
-  [self setNextWaypointAsTheDestination];
-  _currentIntermediateDestinationIndex++;
-}
-
-- (void)changeToEnrouteToDropoffState {
-  // Update bottom panel UI to reflect the "Enroute to drop-off" trip state.
-  _bottomPanel.titleLabel.text = kEnrouteToDropoffPanelTitle;
-  [_bottomPanel.actionButton setTitle:kEnrouteToDropoffButtonTitle forState:UIControlStateNormal];
-
-  // Start navigation and update trip state with the provider.
-  [self startNavigation];
-  [self updateTripWithStatus:GRSDProviderServiceTripStatusEnrouteToDropoff
-      intermediateDestinationIndex:nil];
-
-  // Start polling for new trips as the vehicle is b2b enabled.
-  [self pollFetchVehicle];
-}
-
-- (void)changeToTripCompleteState {
-  // Update bottom panel UI to reflect the "Complete" trip state.
-  _bottomPanel.titleLabel.text = kCompletedTripPanelTitle;
-  _bottomPanel.actionButton.hidden = YES;
-
-  // Stop navigation.
-  [_mapView.locationSimulator stopSimulation];
-  [_mapView.navigator clearDestinations];
-
-  // Update trip state with the provider.
-  [self updateTripWithStatus:GRSDProviderServiceTripStatusComplete
-      intermediateDestinationIndex:nil];
+  // Hide bottom panel while driver waits for a new trip.
+  _bottomPanel.hidden = YES;
 }
 
 - (void)startNavigation {
@@ -733,47 +842,37 @@ static NSString *const kDriverCreationFailedAlertRetryTitle = @"Retry";
   [_mapView.locationSimulator simulateLocationsAlongExistingRoute];
 }
 
-- (void)didTapUpdateTripStateButton:(UIButton *)sender {
-  // Based on the current trip state, transition to the next trip state following this order:
-  // `NewTrip` -> `EnrouteToPickup` -> `ArrivedAtPickup` ->
-  // 'EnrouteToIntermediateDestination'(Optional) -> 'ArrivedAtIntermediateDestination'(Optional)
-  // `EnrouteToDropoff` -> `TripComplete`.
-  switch (_currentTripState) {
-    case GRSDTripStateNew:
-      [self changeToEnrouteToPickupState];
-      break;
-    case GRSDTripStateEnrouteToPickup:
-      [self updateStateAfterDestinationArrival];
-      [self changeToArrivedAtPickupState];
-      break;
-    case GRSDTripStateArrivedAtPickup:
-      [self changeToEnrouteToNextStopState];
-      break;
-    case GRSDTripStateEnrouteToIntermediateDestination:
-      [self updateStateAfterDestinationArrival];
-      [self changeToArrivedAtIntermediateDestinationState];
-      break;
-    case GRSDTripStateArrivedAtIntermediateDestination:
-      [self changeToEnrouteToNextStopState];
-      break;
-    case GRSDTripStateEnrouteToDropoff:
-      [self updateStateAfterDestinationArrival];
-      [self changeToTripCompleteState];
-      break;
-    case GRSDTripStateComplete:
-      break;
+- (nullable NSNumber *)processIntermediateDestinationIndexForState:(GRSDTripState)state {
+  NSNumber *intermediateDestinationIndex = nil;
+  if (state == GRSDTripStateEnrouteToIntermediateDestination) {
+    intermediateDestinationIndex = _tripIDToCurrentIntermediateDestinationIndex[_currentTripID];
+  } else if (state == GRSDTripStateArrivedAtIntermediateDestination) {
+    NSNumber *currentIndex = _tripIDToCurrentIntermediateDestinationIndex[_currentTripID];
+    _tripIDToCurrentIntermediateDestinationIndex[_currentTripID] =
+        [NSNumber numberWithInt:[currentIndex intValue] + 1];
   }
+  return intermediateDestinationIndex;
 }
 
-/* Pop the first waypoint from the list after arriving to a destination. Also stop the location
- * simulator */
-- (void)updateStateAfterDestinationArrival {
-  // Upon arrival, remove the top waypoint from the list.
-  // Waypoints are added in order so should never have the case where you remove the wrong waypoint.
-  if (_waypoints && _waypoints.count) {
-    [_waypoints removeObjectAtIndex:0];
+- (void)didTapUpdateTripStateButton:(UIButton *)sender {
+  GRSDTripState nextTripState = [self nextStateForCurrentTrip];
+  _shouldAutoDrive = NO;
+
+  if (nextTripState == GRSDTripStateEnrouteToIntermediateDestination ||
+      nextTripState == GRSDTripStateEnrouteToDropoff) {
+    [_mapView.navigator clearDestinations];
+    _shouldAutoDrive = YES;
+    _bottomPanel.actionButton.enabled = NO;
+    _bottomPanel.actionButton.backgroundColor = UIColor.grayColor;
+  } else if (nextTripState == GRSDTripStateEnrouteToPickup ||
+             nextTripState == GRSDTripStateEnrouteToIntermediateDestination) {
+    [self startNavigation];
   }
-  _mapView.locationSimulator.paused = YES;
+
+  NSNumber *intermediateDestinationIndex =
+      [self processIntermediateDestinationIndexForState:nextTripState];
+  [self updateTripWithStatus:GetProviderStringFromTripState(nextTripState)
+      intermediateDestinationIndex:intermediateDestinationIndex];
 }
 
 #pragma mark - GMSRoadSnappedLocationProviderListener
@@ -805,14 +904,16 @@ static NSString *const kDriverCreationFailedAlertRetryTitle = @"Retry";
 - (void)vehicleReporter:(GMTDVehicleReporter *)vehicleReporter
     didFailVehicleUpdate:(GMTDVehicleUpdate *)vehicleUpdate
                withError:(NSError *)error {
-  NSString *bodyString =
-      [NSString stringWithFormat:@"Vehicle State: %ld. Location: %@",
-                                 (long)vehicleUpdate.vehicleState, vehicleUpdate.location];
-  if (error) {
-    bodyString =
-        [NSString stringWithFormat:@"Error: %@. %@", error.localizedDescription, bodyString];
+  NSString *headerString = @"Vehicle Reporter - Vehicle update failed. Error: ";
+  NSString *bodyString = error.localizedDescription;
+  if (@available(iOS 14.5, *)) {
+    for (NSError *underlyingError in error.underlyingErrors) {
+      bodyString =
+          [bodyString stringByAppendingFormat:@" %@", underlyingError.localizedDescription];
+    }
   }
-  NSLog(@"Vehicle Reporter - Vehicle update failed:  %@", bodyString);
+  [self displayAutoFadeOutErrorMessage:[NSString stringWithFormat:@"%@%@", headerString, bodyString]];
+  NSLog(@"%@%@", headerString, bodyString);
 }
 
 #pragma mark - GMSNavigatorListener
