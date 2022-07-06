@@ -19,15 +19,6 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-/** Sample provider supported trip states. */
-FOUNDATION_EXTERN NSString *const GRSDProviderServiceTripStateNew;
-FOUNDATION_EXTERN NSString *const GRSDProviderServiceTripStatusEnrouteToPickup;
-FOUNDATION_EXTERN NSString *const GRSDProviderServiceTripStatusArrivedAtPickup;
-FOUNDATION_EXTERN NSString *const GRSDProviderServiceTripStatusEnrouteToIntermediateDestination;
-FOUNDATION_EXTERN NSString *const GRSDProviderServiceTripStatusArrivedAtIntermediateDestination;
-FOUNDATION_EXTERN NSString *const GRSDProviderServiceTripStatusEnrouteToDropoff;
-FOUNDATION_EXTERN NSString *const GRSDProviderServiceTripStatusComplete;
-
 /** Enum that represents the possible trip types a vehicle can support. */
 typedef NS_OPTIONS(NSUInteger, ProviderSupportedTripType) {
   ProviderSupportedTripTypeNone = 0,              // => 00000000
@@ -60,13 +51,13 @@ typedef void (^GRSDCreateVehicleWithIDHandler)(GRSDVehicleModel *_Nullable vehic
  *
  * @param tripID The trip ID to fetch details for. It is nil if there's an error fetching trip
  * details from the provider.
- * @param tripStatus The trip status associated with the trip. It is nil if there's an error
- * fetching trip details from the provider.
+ * @param tripStatus The trip status associated with the trip. It is set to @c GMSTripStatusUnknown
+ * if there's an error fetching trip details from the provider.
  * @param waypoints The waypoints associated with the trip.
  * @param error Error when fetching trip details from the provider. It is nil if fetching trip
  * details from the provider succeeds.
  */
-typedef void (^GRSDFetchTripHandler)(NSString *_Nullable tripID, NSString *_Nullable tripStatus,
+typedef void (^GRSDFetchTripHandler)(NSString *_Nullable tripID, GMTSTripStatus tripStatus,
                                      NSArray<GMTSTripWaypoint *> *_Nullable waypoints,
                                      NSError *_Nullable error);
 
@@ -149,7 +140,7 @@ typedef void (^GRSDUpdateVehicleHandler)(GRSDVehicleModel *_Nullable vehicleMode
  * It is nil if no intermediate destinations are being updated.
  * @param completion The block executed when the request finishes.
  */
-- (void)updateTripWithStatus:(NSString *)newTripStatus
+- (void)updateTripWithStatus:(GMTSTripStatus)newTripStatus
                           tripID:(NSString *)tripID
     intermediateDestinationIndex:(NSNumber *_Nullable)intermediateDestinationIndex
                       completion:(GRSDUpdateTripHandler)completion;

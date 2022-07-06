@@ -57,15 +57,17 @@ static NSString *const kUpdateTripStatusURLPath = @"trip/";
 static NSString *const kBaseVehicleURLPath = @"vehicle/";
 
 // Sample provider supported trip states.
-NSString *const GRSDProviderServiceTripStateNew = @"NEW";
-NSString *const GRSDProviderServiceTripStatusEnrouteToPickup = @"ENROUTE_TO_PICKUP";
-NSString *const GRSDProviderServiceTripStatusArrivedAtPickup = @"ARRIVED_AT_PICKUP";
-NSString *const GRSDProviderServiceTripStatusEnrouteToDropoff = @"ENROUTE_TO_DROPOFF";
-NSString *const GRSDProviderServiceTripStatusComplete = @"COMPLETE";
-NSString *const GRSDProviderServiceTripStatusEnrouteToIntermediateDestination =
+static NSString *const GRSDProviderServiceTripStatusNew = @"NEW";
+static NSString *const GRSDProviderServiceTripStatusEnrouteToPickup = @"ENROUTE_TO_PICKUP";
+static NSString *const GRSDProviderServiceTripStatusArrivedAtPickup = @"ARRIVED_AT_PICKUP";
+static NSString *const GRSDProviderServiceTripStatusEnrouteToIntermediateDestination =
     @"ENROUTE_TO_INTERMEDIATE_DESTINATION";
-NSString *const GRSDProviderServiceTripStatusArrivedAtIntermediateDestination =
+static NSString *const GRSDProviderServiceTripStatusArrivedAtIntermediateDestination =
     @"ARRIVED_AT_INTERMEDIATE_DESTINATION";
+static NSString *const GRSDProviderServiceTripStatusEnrouteToDropoff = @"ENROUTE_TO_DROPOFF";
+static NSString *const GRSDProviderServiceTripStatusComplete = @"COMPLETE";
+static NSString *const GRSDProviderServiceTripStatusCanceled = @"CANCELED";
+static NSString *const GRSDProviderServiceTripStatusUnknown = @"UNKNOWN";
 
 // Provider waypoint types
 static NSString *const kProviderWaypointTypePickup = @"PICKUP_WAYPOINT_TYPE";
@@ -97,6 +99,50 @@ static NSString *const kErrorUpdatingTripDescription = @"Error updating trip.";
 static NSString *const kErrorFetchingVehicleDescription = @"Error fetching vehicle.";
 static NSString *const kErrorInvalidResponseDescription = @"Invalid response.";
 static NSString *const kErrorUpdatingVehicleDescription = @"Error updating vehicle.";
+
+/** Returns a @c GMTSTripStatus objects from a given string representation. */
+static GMTSTripStatus GetTripStatusFromProviderString(NSString *tripStatus) {
+  if ([tripStatus isEqual:GRSDProviderServiceTripStatusNew]) {
+    return GMTSTripStatusNew;
+  } else if ([tripStatus isEqual:GRSDProviderServiceTripStatusEnrouteToPickup]) {
+    return GMTSTripStatusEnrouteToPickup;
+  } else if ([tripStatus isEqual:GRSDProviderServiceTripStatusArrivedAtPickup]) {
+    return GMTSTripStatusArrivedAtPickup;
+  } else if ([tripStatus isEqual:GRSDProviderServiceTripStatusEnrouteToIntermediateDestination]) {
+    return GMTSTripStatusEnrouteToIntermediateDestination;
+  } else if ([tripStatus isEqual:GRSDProviderServiceTripStatusArrivedAtIntermediateDestination]) {
+    return GMTSTripStatusArrivedAtIntermediateDestination;
+  } else if ([tripStatus isEqual:GRSDProviderServiceTripStatusEnrouteToDropoff]) {
+    return GMTSTripStatusEnrouteToDropoff;
+  } else if ([tripStatus isEqual:GRSDProviderServiceTripStatusComplete]) {
+    return GMTSTripStatusComplete;
+  }
+  return GMTSTripStatusUnknown;
+}
+
+/** Returns the provider string representation of a given @c GMTSTripStatus. */
+static NSString *GetProviderStringFromTripStatus(GMTSTripStatus tripStatus) {
+  switch (tripStatus) {
+    case GMTSTripStatusNew:
+      return GRSDProviderServiceTripStatusNew;
+    case GMTSTripStatusEnrouteToPickup:
+      return GRSDProviderServiceTripStatusEnrouteToPickup;
+    case GMTSTripStatusArrivedAtPickup:
+      return GRSDProviderServiceTripStatusArrivedAtPickup;
+    case GMTSTripStatusEnrouteToIntermediateDestination:
+      return GRSDProviderServiceTripStatusEnrouteToIntermediateDestination;
+    case GMTSTripStatusArrivedAtIntermediateDestination:
+      return GRSDProviderServiceTripStatusArrivedAtIntermediateDestination;
+    case GMTSTripStatusEnrouteToDropoff:
+      return GRSDProviderServiceTripStatusEnrouteToDropoff;
+    case GMTSTripStatusComplete:
+      return GRSDProviderServiceTripStatusComplete;
+    case GMTSTripStatusCanceled:
+      return GRSDProviderServiceTripStatusCanceled;
+    case GMTSTripStatusUnknown:
+      return GRSDProviderServiceTripStatusUnknown;
+  }
+}
 
 /**
  * Generates a JSON request based on the passed in method.
@@ -445,7 +491,8 @@ static NSArray<GMTSTripWaypoint *> *_Nullable GetTripWaypointsFromJSONResponse(
   }
   if (tripID.length == 0) {
     NSString *kTripIDMissingDescription = @"Encountered an unexpected invalid parameter (tripID).";
-    completion(nil, nil, nil, GRSDError(kProviderErrorCode, kTripIDMissingDescription));
+    completion(nil, GMTSTripStatusUnknown, nil,
+               GRSDError(kProviderErrorCode, kTripIDMissingDescription));
     return;
   }
 
@@ -460,7 +507,8 @@ static NSArray<GMTSTripWaypoint *> *_Nullable GetTripWaypointsFromJSONResponse(
 
   NSURL *requestURL = GenerateFetchTripURL(tripID);
   if (!requestURL) {
-    completion(nil, nil, nil, GRSDError(kProviderErrorCode, kInvalidRequestUrlDescription));
+    completion(nil, GMTSTripStatusUnknown, nil,
+               GRSDError(kProviderErrorCode, kInvalidRequestUrlDescription));
     return;
   }
 
@@ -476,18 +524,19 @@ static NSArray<GMTSTripWaypoint *> *_Nullable GetTripWaypointsFromJSONResponse(
                                   error:(NSError *)error
                              completion:(GRSDFetchTripHandler)completion {
   if (error) {
-    completion(nil, nil, nil, error);
+    completion(nil, GMTSTripStatusUnknown, nil, error);
     return;
   }
 
   NSInteger statusCode = [(NSHTTPURLResponse *)response statusCode];
   if (statusCode != kHTTPStatusOkCode) {
-    completion(nil, nil, nil, GRSDError(kProviderErrorCode, kErrorFetchingTripDescription));
+    completion(nil, GMTSTripStatusUnknown, nil,
+               GRSDError(kProviderErrorCode, kErrorFetchingTripDescription));
     return;
   }
   // The provider sends empty data if there's no available trip.
   if (data.length == 0) {
-    completion(nil, nil, nil, nil);
+    completion(nil, GMTSTripStatusUnknown, nil, nil);
     return;
   }
 
@@ -496,7 +545,7 @@ static NSArray<GMTSTripWaypoint *> *_Nullable GetTripWaypointsFromJSONResponse(
   NSDictionary<NSString *, id> *jsonResponse =
       [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&jsonParseError];
   if (jsonParseError) {
-    completion(nil, nil, nil, jsonParseError);
+    completion(nil, GMTSTripStatusUnknown, nil, jsonParseError);
     return;
   }
 
@@ -509,16 +558,18 @@ static NSArray<GMTSTripWaypoint *> *_Nullable GetTripWaypointsFromJSONResponse(
   // 'providers/providerID/trips/tripID', so strip trip ID from it.
   NSString *tripID = [fullTripName componentsSeparatedByString:@"/"].lastObject;
   if (!tripID) {
-    completion(nil, nil, nil, GRSDError(kProviderErrorCode, kInvalidTripIDDescription));
+    completion(nil, GMTSTripStatusUnknown, nil,
+               GRSDError(kProviderErrorCode, kInvalidTripIDDescription));
     return;
   }
-  NSString *tripStatus = tripResponse[kProviderDataKeyTripStatus];
+  NSString *tripStatusString = tripResponse[kProviderDataKeyTripStatus];
+  GMTSTripStatus tripStatus = GetTripStatusFromProviderString(tripStatusString);
   NSArray<GMTSTripWaypoint *> *waypoints = GetTripWaypointsFromJSONResponse(tripResponse);
 
   completion(tripID, tripStatus, [waypoints copy], nil);
 }
 
-- (void)updateTripWithStatus:(NSString *)newStatus
+- (void)updateTripWithStatus:(GMTSTripStatus)newStatus
                           tripID:(NSString *)tripID
     intermediateDestinationIndex:(NSNumber *)intermediateDestinationIndex
                       completion:(GRSDUpdateTripHandler)completion {
@@ -527,7 +578,7 @@ static NSArray<GMTSTripWaypoint *> *_Nullable GetTripWaypointsFromJSONResponse(
     return;
   }
 
-  if (tripID.length == 0 || newStatus.length == 0) {
+  if (tripID.length == 0 || newStatus == GMTSTripStatusUnknown) {
     NSString *kUnexpectedNilParamDescription = @"Encountered an unexpected invalid parameter.";
     completion(nil, GRSDError(kProviderErrorCode, kUnexpectedNilParamDescription));
     return;
@@ -541,7 +592,7 @@ static NSArray<GMTSTripWaypoint *> *_Nullable GetTripWaypointsFromJSONResponse(
                                         completion:completion];
       };
   NSMutableDictionary<NSString *, id> *payload = [[NSMutableDictionary alloc] init];
-  [payload setObject:newStatus forKey:kProviderDataKeyStatus];
+  [payload setObject:GetProviderStringFromTripStatus(newStatus) forKey:kProviderDataKeyStatus];
   if (intermediateDestinationIndex) {
     [payload setObject:intermediateDestinationIndex
                 forKey:kProviderDataKeyIntermediateDestinationIndex];
