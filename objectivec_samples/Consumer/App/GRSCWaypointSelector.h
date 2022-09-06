@@ -61,4 +61,7 @@
 /** Adds an intermediate destination to the map. */
 - (void)addIntermediateDestination;
 
+/** Resets pickup point, intermediate point, and dropoff point location. */
+- (void)resetAllPointSelection;
+
 @end

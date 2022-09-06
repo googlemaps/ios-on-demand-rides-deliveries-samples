@@ -15,6 +15,8 @@
 
 #import <Foundation/Foundation.h>
 
+#import <GoogleRidesharingConsumer/GoogleRidesharingConsumer.h>
+
 /**
  * Description for the GRSC unexpected JSON class type error.
  */
@@ -24,6 +26,21 @@ FOUNDATION_EXTERN NSString *_Nonnull const kGRSCUnexpectedJSONClassTypeErrorDesc
  * Description for the GRSC invalid request error.
  */
 FOUNDATION_EXTERN NSString *_Nonnull const kGRSCInvalidRequestURLDescription;
+
+/**
+ * Description for the GRSC expected fields not found error.
+ */
+FOUNDATION_EXTERN NSString *_Nonnull const kExpectedFieldsNotFoundErrorDescription;
+
+/**
+ * HTTP constants.
+ */
+FOUNDATION_EXTERN NSInteger const kGRSCHTTPSuccessCode;
+FOUNDATION_EXTERN NSString *_Nonnull const kGRSCHTTPMethodPOST;
+FOUNDATION_EXTERN NSString *_Nonnull const kGRSCHTTPMethodPUT;
+FOUNDATION_EXTERN NSString *_Nonnull const kGRSCHTTPContentTypeHeaderField;
+FOUNDATION_EXTERN NSString *_Nonnull const kGRSCHTTPJSONContentType;
+FOUNDATION_EXTERN NSString *_Nonnull const kGRSCHTTPGoogleCloudApiKeyHeaderField;
 
 /**
  * Handler type definition used to process responses from the provider server.
@@ -69,7 +86,14 @@ NSURL *_Nullable GRSCProviderURLWithPath(NSString *_Nonnull path);
  *
  * @param data The data object containing JSON serializable data.
  * @param error The error that will be set on failure.
- *
  */
 GRSCProviderFieldsDictionary *_Nullable GRSCGetDictionaryFromJSONData(
     NSData *_Nonnull data, NSError *_Nullable *_Nullable error);
+
+/**
+ * Returns a dictionary representation of a given GMTSTerminalLocation.
+ *
+ * @param location The given GMTSTerminalLocation.
+ */
+NSDictionary *_Nonnull GRSCGetDictionaryFromTerminalLocation(
+    GMTSTerminalLocation *_Nonnull location);

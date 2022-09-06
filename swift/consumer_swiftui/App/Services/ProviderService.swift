@@ -76,7 +76,7 @@ class ProviderService {
             locations: intermediateDestinations),
       ] as [String: Any]
 
-    let request = getJSONRequest(
+    let request = Self.makeJSONRequest(
       url: requestURL, payloadDict: payloadDict, method: RPCConstants.httpMethodPOST)
     let (data, _) = try await session.data(for: request, delegate: nil)
     guard
@@ -97,12 +97,12 @@ class ProviderService {
       [
         RPCConstants.statusKey: RPCConstants.tripStatusCanceled
       ] as [String: Any]
-    let request = getJSONRequest(
+    let request = Self.makeJSONRequest(
       url: requestURL, payloadDict: payloadDict, method: RPCConstants.httpMethodPUT)
     let _ = try await session.data(for: request, delegate: nil)
   }
 
-  private func getJSONRequest(url: URL, payloadDict: [String: Any], method: String) -> URLRequest {
+  static private func makeJSONRequest(url: URL, payloadDict: [String: Any], method: String) -> URLRequest {
     let serializedPayload = try! JSONSerialization.data(withJSONObject: payloadDict)
     var request = URLRequest(url: url)
     request.httpMethod = method

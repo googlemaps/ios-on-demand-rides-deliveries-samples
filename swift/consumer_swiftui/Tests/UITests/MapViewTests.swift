@@ -31,16 +31,34 @@ class UITests: XCTestCase {
     let map = app.otherElements.matching(identifier: "MapView").element(boundBy: 0)
     app.buttons["REQUEST RIDE"].tap()
     XCTAssert(app.buttons["CONFIRM PICKUP"].exists)
-    map.swipeUp()
+    map.swipeDown()
+    map.swipeRight()
     XCTAssert(
       app.staticTexts["Choose a pickup location"]
         .waitForExistence(timeout: 0.5))
     app.buttons["CONFIRM PICKUP"].tap()
+    // Tests that the location selection fails with bad selected pickup location.
+    XCTAssert(app.buttons["CONFIRM PICKUP"].waitForExistence(timeout: 2))
+    let locationSelectionFailedPredicate = NSPredicate(
+      format: "label BEGINSWITH 'No available pickup point nearby'")
+    var locationSelectionElement = app.staticTexts.element(
+      matching: locationSelectionFailedPredicate)
+    XCTAssert(locationSelectionElement.waitForExistence(timeout: 2))
+    map.swipeUp()
+    map.swipeRight()
+    app.buttons["CONFIRM PICKUP"].tap()
+    // Tests that the location selection succeeds with reasonable selected pickup location
+    XCTAssert(app.buttons["CONFIRM PICKUP POINT"].waitForExistence(timeout: 2))
+    let locationSelectionSucceededPredicate = NSPredicate(
+      format: "label BEGINSWITH 'We found you the nearest available pickup point!'")
+    locationSelectionElement = app.staticTexts.element(
+      matching: locationSelectionSucceededPredicate)
+    XCTAssert(locationSelectionElement.waitForExistence(timeout: 2))
+    map.swipeLeft()
+    app.buttons["CONFIRM PICKUP POINT"].tap()
     XCTAssert(app.buttons["CONFIRM DROPOFF"].exists)
     map.swipeRight()
-    XCTAssert(
-      app.staticTexts["Choose a drop-off location"]
-        .waitForExistence(timeout: 0.5))
+    XCTAssert(app.staticTexts["Choose a drop-off location"].waitForExistence(timeout: 0.5))
     app.buttons["CONFIRM DROPOFF"].tap()
     XCTAssert(app.buttons["CONFIRM TRIP"].waitForExistence(timeout: 0.5))
   }

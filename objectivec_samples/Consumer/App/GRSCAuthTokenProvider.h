@@ -19,7 +19,7 @@
 
 /**
  * An implementation of GRSAuthorization which provides authorization tokens for FleetEngine.
-*/
+ */
 @interface GRSCAuthTokenProvider : NSObject <GMTCAuthorization>
 
 /**

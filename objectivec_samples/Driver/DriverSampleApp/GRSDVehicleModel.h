@@ -26,6 +26,9 @@ NS_ASSUME_NONNULL_BEGIN
 /** The ID of the vehicle. */
 @property(nonatomic, readonly) NSString *vehicleID;
 
+/** The restaurant ID of the vehicle. */
+@property(nonatomic, readonly) NSString *_Nullable restaurantID;
+
 /** The maximum capacity of the vehicle. */
 @property(nonatomic, readonly) NSUInteger maximumCapacity;
 
@@ -39,11 +42,13 @@ NS_ASSUME_NONNULL_BEGIN
  * Initializes an instance of this class.
  *
  * @param vehicleID The ID of the vehicle.
+ * @param restaurantID The ID of the restaurant the vehicle belongs to.
  * @param maximumCapacity The maximum capacity of the vehicle.
  * @param supportedTripTypes The supported trip types.
  * @param isBackToBackEnabled Whether the vehicle is enabled for back to back trips.
  */
 - (instancetype)initWithVehicleID:(NSString *)vehicleID
+                     restaurantID:(NSString *_Nullable)restaurantID
                   maximumCapacity:(NSUInteger)maximumCapacity
                supportedTripTypes:(ProviderSupportedTripType)supportedTripTypes
               isBackToBackEnabled:(BOOL)isBackToBackEnabled NS_DESIGNATED_INITIALIZER;

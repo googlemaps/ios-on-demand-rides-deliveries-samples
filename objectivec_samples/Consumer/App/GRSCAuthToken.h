@@ -25,7 +25,6 @@
  *
  * @param token The string representation of the token.
  * @param expiration The interval after which the token will expire.
- *
  */
 - (nonnull instancetype)initWithToken:(nullable NSString *)token
                            expiration:(NSTimeInterval)expiration NS_DESIGNATED_INITIALIZER;

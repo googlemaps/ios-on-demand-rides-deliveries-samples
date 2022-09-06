@@ -28,6 +28,9 @@ final class ModelData: ObservableObject {
     /// Indicates that the customer is selecting their pickup location.
     case selectingPickup
 
+    /// Indicates that the customer is confirming the location selection pickup point.
+    case confirmingLocationSelectionPickupPoint
+
     /// Indicates that the customer is selecting their drop off location.
     case selectingDropoff
 
@@ -41,8 +44,22 @@ final class ModelData: ObservableObject {
     case journeySharing
   }
 
+  enum LocationSelectionState: String, Hashable, Codable {
+    /// Indicates that no HTTP call for the Location Selection API is made currently.
+    case initial
+
+    /// Indicates that the map view controller successfully gets the Location Selection API response.
+    case getLocationSelectionSucceeded
+
+    /// Indicates that the map view controller failed to get the Location Selection API response.
+    case getLocationSelectionFailed
+  }
+
   /// State representing the current customer status.
   @Published var customerState: CustomerState
+
+  /// State representing the current status of getting the location selection response.
+  @Published var locationSelectionState: LocationSelectionState
 
   /// Text displayed on the control button in `ControlPanelView`
   @Published var controlButtonLabel: String
@@ -65,6 +82,10 @@ final class ModelData: ObservableObject {
   /// Color of the control button, which can update based on the trip state.
   @Published var buttonColor: Color
 
+  /// The walking distance from the user-selected pickup location to the location selection
+  /// pickup point.
+  @Published var locationSelectionWalkingDistance: Double
+
   /// The remaining time in minutes to the current waypoint, displayed below the control title.
   @Published var timeToWaypoint: Double
 
@@ -80,10 +101,12 @@ final class ModelData: ObservableObject {
   /// Initializer for an empty `ModelData`.
   init() {
     customerState = .initial
+    locationSelectionState = .initial
     controlButtonLabel = Strings.controlPanelRequestRideButtonText
     tripInfoLabel = ""
     staticLabel = ""
     tripID = ""
+    locationSelectionWalkingDistance = 0.0
     timeToWaypoint = 0.0
     remainingDistanceInMeters = 0.0
     vehicleID = ""

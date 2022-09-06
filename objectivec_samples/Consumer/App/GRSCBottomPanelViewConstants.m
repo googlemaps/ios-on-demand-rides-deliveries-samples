@@ -18,12 +18,17 @@
 // Bottom panel button constants.
 NSString *const GRSCBottomPanelRequestRideButtonText = @"REQUEST RIDE";
 NSString *const GRSCBottomPanelConfirmPickupButtonText = @"CONFIRM PICKUP";
+NSString *const GRSCBottomPanelConfirmPickupPointButtonText = @"CONFIRM PICKUP POINT";
 NSString *const GRSCBottomPanelConfirmDropoffButtonText = @"CONFIRM DROPOFF";
 NSString *const GRSCBottomPanelConfirmTripButtonText = @"CONFIRM TRIP";
 NSString *const GRSCBottomPanelCancelRideButtonText = @"CANCEL RIDE";
 
 // Bottom panel title constants.
 NSString *const GRSCBottomPanelSelectPickupLocationTitleText = @"Choose a pickup location";
+NSString *const GRSCBottomPanelLocationSelectionPickupPointTitleTextHead =
+    @"We found you the nearest available pickup point!\nWalk ";
+NSString *const GRSCBottomPanelLocationSelectionPickupPointTitleTextTail =
+    @" meters to meet your driver.";
 NSString *const GRSCBottomPanelSelectDropoffLocationTitleText = @"Choose a drop-off location";
 NSString *const GRSCBottomPanelWaitingForDriverMatchTitleText = @"Waiting for driver match";
 NSString *const GRSCBottomPanelEnrouteToPickupTitleText = @"Driver is arriving at pickup";
@@ -40,9 +45,11 @@ NSString *const GRSCBottomPanelDriverDroppingAnotherRiderOffText =
     @"Driver is dropping another rider off";
 NSString *const GRSCBottomPanelDriverStoppingForAnotherRiderText =
     @"Driver is stopping for another rider";
+NSString *const GRSCBottomPanelLocationSelectionFailedTitleText =
+    @"No available pickup point nearby.\nPlease select another pickup location.";
 
 // Bottom panel location constants.
 NSString *const GRSCBottomPanelPickupLocationText = @"pickup location";
+NSString *const GRSCBottomPanelPickupPointText = @"pickup point";
 NSString *const GRSCBottomPanelDropoffLocationText = @"drop-off location";
-
 NSString *const GRSCBottomPanelSharedTripTypeLabelText = @"Shared Trip";

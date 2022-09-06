@@ -91,4 +91,10 @@ static NSString *const kIntermediateDestinationImageName = @"grc_ic_intermediate
   marker.map = _mapView;
 }
 
+- (void)resetAllPointSelection {
+  _selectedPickupLocation = nil;
+  _selectedDropoffLocation = nil;
+  [_selectedIntermediateDestinations removeAllObjects];
+}
+
 @end

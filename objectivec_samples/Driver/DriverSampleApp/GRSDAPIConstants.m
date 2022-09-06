@@ -18,3 +18,5 @@
 NSString *const kMapsAPIKey = @"YOUR_API_KEY";
 
 NSString *const kProviderID = @"YOUR_PROVIDER_ID";
+
+NSString *const kProviderBaseURLString = @"http://localhost:8080";

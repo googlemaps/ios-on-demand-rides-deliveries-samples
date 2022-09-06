@@ -25,8 +25,6 @@ static NSString *const kGRSCProviderUpdateTripStatusURLString = @"/trip/";
 static NSString *const kGRSCPickupKey = @"pickup";
 static NSString *const kGRSCIntermediateDestinationsKey = @"intermediateDestinations";
 static NSString *const kGRSCDropoffKey = @"dropoff";
-static NSString *const kGRSCLatitudeKey = @"latitude";
-static NSString *const kGRSCLongitudeKey = @"longitude";
 static NSString *const kGRSCStatusKey = @"status";
 static NSString *const kGRSCTripTypeKey = @"tripType";
 static NSString *const kGRSCTripTypeExclusiveKey = @"EXCLUSIVE";
@@ -35,43 +33,18 @@ static NSString *const kGRSCTripTypeSharedKey = @"SHARED";
 // Response parameter keys.
 static NSString *const kGRSCTripNameKey = @"name";
 
-// HTTP constants.
-static NSInteger const kGRSCHTTPSuccessCode = 200;
-static NSString *const kGRSCHTTPMethodPOST = @"POST";
-static NSString *const kGRSCHTTPMethodPUT = @"PUT";
-static NSString *const kGRSCHTTPContentTypeHeaderField = @"Content-Type";
-static NSString *const kGRSCHTTPJSONContentType = @"application/json";
-
 // Error descriptions.
-static NSString *const kExpectedFieldsNotFoundErrorDescription =
-    @"Expected fields not found in response.";
 static NSString *const kFailedToCancelTripErrorDescription = @"Server failed to cancel trip.";
 
 // Trip status.
 static NSString *const kGRSCTripStatusCanceled = @"CANCELED";
-
-/** Returns a dictionary representation of a given GMTSLatLng. */
-static NSDictionary *_Nonnull GetDictionaryFromGRSLatLng(GMTSLatLng *_Nonnull latLng) {
-  return @{
-    kGRSCLatitudeKey : @(latLng.latitude),
-    kGRSCLongitudeKey : @(latLng.longitude),
-  };
-}
-
-/** Returns a dictionary representation of a given GMTSTerminalLocation. */
-static NSDictionary *_Nonnull GetDictionaryFromTerminalLocation(
-    GMTSTerminalLocation *_Nonnull location) {
-  GRSCProviderFieldsMutableDictionary *terminalLocationDictionary =
-      [GetDictionaryFromGRSLatLng(location.point) mutableCopy];
-  return [terminalLocationDictionary copy];
-}
 
 /** Returns an array of the intermediate destinations as LatLngs. */
 static NSArray *_Nonnull GetLocationsArrayFromIntermediateDestinations(
     NSArray<GMTSTerminalLocation *> *_Nonnull intermediateDestinations) {
   NSMutableArray *locationsArray = [[NSMutableArray alloc] init];
   for (GMTSTerminalLocation *intermediateDestination in intermediateDestinations) {
-    [locationsArray addObject:GetDictionaryFromTerminalLocation(intermediateDestination)];
+    [locationsArray addObject:GRSCGetDictionaryFromTerminalLocation(intermediateDestination)];
   }
   return locationsArray;
 }
@@ -122,8 +95,8 @@ static NSURL *_Nullable GetProviderUpdateTripStatusURLWithTripID(NSString *_Nonn
     return;
   }
 
-  GRSCProviderFieldsDictionary *pickupDictionary = GetDictionaryFromTerminalLocation(pickup);
-  GRSCProviderFieldsDictionary *dropoffDictionary = GetDictionaryFromTerminalLocation(dropoff);
+  GRSCProviderFieldsDictionary *pickupDictionary = GRSCGetDictionaryFromTerminalLocation(pickup);
+  GRSCProviderFieldsDictionary *dropoffDictionary = GRSCGetDictionaryFromTerminalLocation(dropoff);
 
   NSMutableDictionary<NSString *, id> *requestBody = [[NSMutableDictionary alloc] init];
   [requestBody setObject:pickupDictionary forKey:kGRSCPickupKey];

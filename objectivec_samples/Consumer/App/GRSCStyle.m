@@ -43,7 +43,7 @@ UIColor *GRSCStyleTrafficPolylineSpeedTypeJamColor(void) { return [UIColor redCo
 
 UIColor *GRSCStyleTrafficPolylineSpeedTypeNoDataColor(void) { return [UIColor grayColor]; }
 
-UIEdgeInsets GRSCStyleDefaulMapViewCameraPadding(void) {
+UIEdgeInsets GRSCStyleDefaultMapViewCameraPadding(void) {
   return UIEdgeInsetsMake(kCameraBoundsPadding, kCameraBoundsPadding, kCameraBoundsPadding,
                           kCameraBoundsPadding);
 }

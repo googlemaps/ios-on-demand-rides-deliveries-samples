@@ -23,11 +23,15 @@
 #import "GRSDProviderService.h"
 #import "GRSDVehicleModel.h"
 
+/**
+ * Whether to use simulated location for testing purposes. If NO, the real device location is used.
+ * This should be set to NO before testing this app in the real world.
+ */
+static BOOL kIsSimulatingLocation = YES;
+static NSString *kDefaultRestaurantID = @"";
+
 /** Coordinates to be used for setting driver location when in simulator. */
 static const CLLocationCoordinate2D kSanFranciscoCoordinates = {37.7749295, -122.4194155};
-
-/** Default font name for the application. */
-static NSString *const kDefaultFontName = @"Arial";
 
 /** Default font size for the application. */
 static const float kDefaultFontSize = 12.0;
@@ -112,6 +116,8 @@ static NSString *const kDriverCreationFailedAlertTitle = @"Unable to Create Vehi
 static NSString *const kDriverCreationFailedAlertDescription =
     @"An error occured while connecting to the provider backend.";
 static NSString *const kDriverCreationFailedAlertRetryTitle = @"Retry";
+static NSString *const kNavigationControllerTitle = @"Driver";
+static NSString *const kVehicleIDPrefix = @"Vehicle ID: ";
 
 @implementation GRSDViewController {
   CLLocationManager *_locationManager;
@@ -211,7 +217,7 @@ static NSString *const kDriverCreationFailedAlertRetryTitle = @"Retry";
 
 - (void)setUpNavigationBar {
   [self.navigationController.navigationBar setTitleTextAttributes:@{
-    NSFontAttributeName : [UIFont fontWithName:kDefaultFontName size:kDefaultFontSize],
+    NSFontAttributeName : [UIFont systemFontOfSize:kDefaultFontSize],
     NSForegroundColorAttributeName : [UIColor whiteColor]
   }];
   self.navigationController.navigationBar.barTintColor = DefaultNavigationBarColor();
@@ -336,10 +342,10 @@ static NSString *const kDriverCreationFailedAlertRetryTitle = @"Retry";
 }
 
 - (void)setUpDriver {
-  // Simulate the driver location at a fixed coordinate.
-  // Note: The locationSimulator allows the user location to be simulated for testing purposes, and
-  // references to it should be removed before testing this app in the real world.
-  [_mapView.locationSimulator simulateLocationAtCoordinate:kSanFranciscoCoordinates];
+  if (kIsSimulatingLocation) {
+    // Simulate the driver location at a fixed coordinate for testing purposes.
+    [_mapView.locationSimulator simulateLocationAtCoordinate:kSanFranciscoCoordinates];
+  }
 
   _isVehicleOnline = NO;
 
@@ -383,6 +389,7 @@ static NSString *const kDriverCreationFailedAlertRetryTitle = @"Retry";
   // Create a vehicle with b2b support enabled by default.
   [_providerService
       createVehicleWithID:randomVehicleID
+             restaurantID:kDefaultRestaurantID
       isBackToBackEnabled:YES
                completion:^(GRSDVehicleModel *_Nullable vehicleModel, NSError *_Nullable error) {
                  [weakSelf handleCreateVehicleWithModel:vehicleModel
@@ -406,7 +413,9 @@ static NSString *const kDriverCreationFailedAlertRetryTitle = @"Retry";
   }
   _currentVehicleModel = vehicleModel;
 
-  self.title = [NSString stringWithFormat:@"Vehicle ID: %@", _currentVehicleModel.vehicleID];
+  self.title =
+      [NSString stringWithFormat:@"%@%@", kVehicleIDPrefix, _currentVehicleModel.vehicleID];
+  self.navigationController.title = kNavigationControllerTitle;
 
   // Set up Driver SDK.
   GRSDProviderService *providerService = _providerService;
@@ -540,6 +549,7 @@ static NSString *const kDriverCreationFailedAlertRetryTitle = @"Retry";
       fetchTripWithID:_currentTripID
            completion:^(NSString *_Nullable tripID, GMTSTripStatus tripStatus,
                         NSArray<GMTSTripWaypoint *> *_Nullable waypoints,
+                        NSMutableArray<GMTSLatLng *> *_Nullable routeList,
                         NSError *_Nullable error) {
              typeof(self) strongSelf = weakSelf;
              if (!strongSelf) {
@@ -748,7 +758,9 @@ static NSString *const kDriverCreationFailedAlertRetryTitle = @"Retry";
 }
 
 - (void)stopNavigation {
-  _mapView.locationSimulator.paused = YES;
+  if (kIsSimulatingLocation) {
+    _mapView.locationSimulator.paused = YES;
+  }
   [_mapView.navigator clearDestinations];
 }
 
@@ -797,13 +809,13 @@ static NSString *const kDriverCreationFailedAlertRetryTitle = @"Retry";
   _mapView.navigator.sendsBackgroundNotifications = YES;
   _mapView.cameraMode = GMSNavigationCameraModeFollowing;
 
-  // Simulate vehicle progress along the route.
-  // Note: The locationSimulator allows the user location to be simulated for testing purposes, and
-  // references to it should be removed before testing this app in the real world.
-  if (_mapView.locationSimulator.isPaused) {
-    _mapView.locationSimulator.paused = NO;
+  if (kIsSimulatingLocation) {
+    // Simulate vehicle progress along the route for testing purposes.
+    if (_mapView.locationSimulator.isPaused) {
+      _mapView.locationSimulator.paused = NO;
+    }
+    [_mapView.locationSimulator simulateLocationsAlongExistingRoute];
   }
-  [_mapView.locationSimulator simulateLocationsAlongExistingRoute];
 }
 
 - (nullable NSNumber *)processIntermediateDestinationIndexForStatus:(GMTSTripStatus)status {

@@ -18,12 +18,14 @@
 @implementation GRSDVehicleModel
 
 - (instancetype)initWithVehicleID:(NSString *)vehicleID
+                     restaurantID:(NSString *_Nullable)restaurantID
                   maximumCapacity:(NSUInteger)maximumCapacity
                supportedTripTypes:(ProviderSupportedTripType)supportedTripTypes
               isBackToBackEnabled:(BOOL)isBackToBackEnabled {
   self = [super init];
   if (self) {
     _vehicleID = [vehicleID copy];
+    _restaurantID = [restaurantID copy];
     _maximumCapacity = maximumCapacity;
     _supportedTripTypes = supportedTripTypes;
     _isBackToBackEnabled = isBackToBackEnabled;
@@ -43,6 +45,10 @@
   if (![otherVehicleModel.vehicleID isEqualToString:_vehicleID]) {
     return NO;
   }
+  if ((otherVehicleModel.restaurantID != _restaurantID) &&
+      ![otherVehicleModel.restaurantID isEqualToString:_restaurantID]) {
+    return NO;
+  }
   if (otherVehicleModel.supportedTripTypes != _supportedTripTypes) {
     return NO;
   }
@@ -60,6 +66,7 @@
   NSUInteger result =
       _isBackToBackEnabled ? 3721 : 3761;  // Use different values to represent the b2b states.
   result = (result * basePrime) + (self.vehicleID ? [self.vehicleID hash] : 0);
+  result = (result * basePrime) + (self.restaurantID ? [self.restaurantID hash] : 0);
   result = (result * basePrime) + [@(self.maximumCapacity) hash];
   result = (result * basePrime) + [@(self.supportedTripTypes) hash];
   return result;

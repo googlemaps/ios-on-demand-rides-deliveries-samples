@@ -23,6 +23,9 @@ enum Strings {
   /// Control panel button text for the confirm pickup state.
   static let controlPanelConfirmPickupButtonText = "CONFIRM PICKUP"
 
+  /// Control panel button text for the confirm location selection pickup point state.
+  static let controlPanelConfirmLocationSelectionPickupPointButtonText = "CONFIRM PICKUP POINT"
+
   /// Control panel button text for the confirm dropoff state.
   static let controlPanelConfirmDropoffButtonText = "CONFIRM DROPOFF"
 
@@ -35,6 +38,12 @@ enum Strings {
   /// Pick up location text for the trip info view.
   static let selectPickupLocationText = "pickup location"
 
+  /// The head of the location selection walking distance text for the trip info view.
+  static let locationSelectionWalkingDistanceTextHead = "Walk "
+
+  /// The tail of the location selection walking distance text for the trip info view.
+  static let locationSelectionWalkingDistanceTextTail = " meters to meet your driver."
+
   /// Drop off location text for the trip info view.
   static let selectDropoffLocationText = "drop-off location"
 
@@ -44,8 +53,17 @@ enum Strings {
   /// Trip ID text for the trip view.
   static let tripIDText = "Trip ID: "
 
-  /// Static text displayed on trip info view.
-  static let tripInfoViewStaticText = "Choose a "
+  /// Static text displayed on trip info view for the user selecting pickup and drop off location
+  /// states.
+  static let tripInfoViewUserSelectLocationStaticText = "Choose a "
+
+  /// Static text displayed on trip info view for the location selection state.
+  static let tripInfoViewLocationSelectionStaticText =
+    "We found you the nearest available pickup point!\n"
+
+  /// Static text displayed on trip info view for the location selection failure state.
+  static let tripInfoViewLocationSelectionFailedStaticText =
+    "No available pickup point nearby.\nPlease select another pickup location."
 
   /// Text displayed on control panel state label for waiting for a new trip state.
   static let waitingForDriverMatchTitleText = "Waiting for driver match"
@@ -70,5 +88,4 @@ enum Strings {
 
   /// Text displayed on control panel state label for waiting for trip completed state.
   static let tripCompleteTitleText = "Trip Complete"
-
 }

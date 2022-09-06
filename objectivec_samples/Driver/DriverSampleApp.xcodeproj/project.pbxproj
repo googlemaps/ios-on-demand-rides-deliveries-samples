@@ -10,6 +10,8 @@
 		5F55A7691E0B8A608C48B42A /* Pods_DriverSampleApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8E40FEA95095E3CA92A9618D /* Pods_DriverSampleApp.framework */; };
 		3B3BEAFF28629EE700CAFE69 /* GRSDEditVehicleTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3B3BEAFD28629EE700CAFE69 /* GRSDEditVehicleTableViewController.m */; };
 		3BD7196E28629F3400D40AE3 /* GRSDVehicleModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 3BD7196D28629F3400D40AE3 /* GRSDVehicleModel.m */; };
+		D60A42F248FB6C2100000000 /* GRSDTabBarController.m in Sources */ = {isa = PBXBuildFile; fileRef = E6BDE97248FB6C2100000000 /* GRSDTabBarController.m */; };
+		D60A42F2C1C9C14D00000000 /* GRSDExpeditorViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = E6BDE972C1C9C14D00000000 /* GRSDExpeditorViewController.m */; };
 		EE05992127067ED700605B6C /* GRSDAPIConstants.m in Sources */ = {isa = PBXBuildFile; fileRef = EE05992327067ED700605B6C /* GRSDAPIConstants.m */; };
 		EE05993227067ED700605B6C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EE05992427067ED700605B6C /* Assets.xcassets */; };
 		EE05993327067ED700605B6C /* GRSDViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = EE05992727067ED700605B6C /* GRSDViewController.m */; };
@@ -23,6 +25,10 @@
 /* Begin PBXFileReference section */
 		7C199D2A21A269F476D3EA65 /* Pods-DriverSampleApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-DriverSampleApp.release.xcconfig"; path = "Target Support Files/Pods-DriverSampleApp/Pods-DriverSampleApp.release.xcconfig"; sourceTree = "<group>"; };
 		8E40FEA95095E3CA92A9618D /* Pods_DriverSampleApp.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_DriverSampleApp.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		E6BDE972C1C9C14D00000000 /* GRSDExpeditorViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GRSDExpeditorViewController.m; sourceTree = "<group>"; };
+		E6BDE972F03FF24900000000 /* GRSDExpeditorViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GRSDExpeditorViewController.h; sourceTree = "<group>"; };
+		E6BDE97248FB6C2100000000 /* GRSDTabBarController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GRSDTabBarController.m; sourceTree = "<group>"; };
+		E6BDE9725E4AAA9200000000 /* GRSDTabBarController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GRSDTabBarController.h; sourceTree = "<group>"; };
 		EE05990627067E8E00605B6C /* DriverSampleApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DriverSampleApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		EE05992227067ED700605B6C /* GRSDAPIConstants.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GRSDAPIConstants.h; sourceTree = "<group>"; };
 		EE05992327067ED700605B6C /* GRSDAPIConstants.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GRSDAPIConstants.m; sourceTree = "<group>"; };
@@ -107,6 +113,10 @@
 				3B3BEAFD28629EE700CAFE69 /* GRSDEditVehicleTableViewController.m */,
 				EE05992627067ED700605B6C /* GRSDProviderService.h */,
 				EE05992A27067ED700605B6C /* GRSDProviderService.m */,
+				E6BDE972C1C9C14D00000000 /* GRSDExpeditorViewController.m */,
+        E6BDE972F03FF24900000000 /* GRSDExpeditorViewController.h */,
+				E6BDE9725E4AAA9200000000 /* GRSDTabBarController.h */,
+        E6BDE97248FB6C2100000000 /* GRSDTabBarController.m */,
 				3BD7196C28629F3400D40AE3 /* GRSDVehicleModel.h */,
 				3BD7196D28629F3400D40AE3 /* GRSDVehicleModel.m */,
 				EE05993027067ED700605B6C /* GRSDViewController.h */,
@@ -246,6 +256,8 @@
 				3B3BEAFF28629EE700CAFE69 /* GRSDEditVehicleTableViewController.m in Sources */,
 				3BD7196E28629F3400D40AE3 /* GRSDVehicleModel.m in Sources */,
 				EE05993327067ED700605B6C /* GRSDViewController.m in Sources */,
+				D60A42F2C1C9C14D00000000 /* GRSDExpeditorViewController.m in Sources */,
+        D60A42F248FB6C2100000000 /* GRSDTabBarController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

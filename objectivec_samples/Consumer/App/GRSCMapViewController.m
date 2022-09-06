@@ -13,11 +13,12 @@
  * permissions and limitations under the License.
  */
 
-#import "GRSCMapViewController.h"
-
 #import <GoogleRidesharingConsumer/GoogleRidesharingConsumer.h>
+#import "GRSCAPIConstants.h"
 #import "GRSCBottomPanelView.h"
 #import "GRSCBottomPanelViewConstants.h"
+#import "GRSCMapViewController+LocationSelection.h"
+#import "GRSCMapViewController+Protected.h"
 #import "GRSCProviderService.h"
 #import "GRSCStringUtils.h"
 #import "GRSCStyle.h"
@@ -43,6 +44,9 @@ static CGFloat const kGMTSCDefaultCameraLongitude = -122.4194;
 // Camera zoom level.
 static CGFloat const kGMTSCDefaultZoomLevel = 13.0;
 
+// The unset Location Selection API key.
+static NSString *const kUnsetLocationSelectionAPIKeyValue = @"YOUR_API_KEY";
+
 /** An enumeration of possible customer states for the mapview. */
 typedef NS_ENUM(NSUInteger, GRSCMapViewCustomerState) {
   /** A state indicating that the mapview has not been initialized. */
@@ -51,6 +55,11 @@ typedef NS_ENUM(NSUInteger, GRSCMapViewCustomerState) {
   GRSCMapViewCustomerStateInitialized,
   /** A state indicating that the customer is selecting their pickup location. */
   GRSCMapViewCustomerStateSelectingPickup,
+  /**
+   * A state indicating that the customer is previewing their pickup point given by Location
+   * Selection.
+   */
+  GRSCMapViewCustomerStateConfirmPickupPoint,
   /** A state indicating that the customer is selecting their drop off location. */
   GRSCMapViewCustomerStateSelectingDropoff,
   /** A state indicating that the customer is previewing their trip. */
@@ -62,33 +71,25 @@ typedef NS_ENUM(NSUInteger, GRSCMapViewCustomerState) {
 };
 
 @implementation GRSCMapViewController {
-  /** The map view that is used as the base view. */
-  GMTCMapView *_mapView;
-  /** Panel view below map used to control state. */
-  GRSCBottomPanelView *_bottomPanel;
   /** Height constraint used for the bottomPanel. */
   NSLayoutConstraint *_bottomPanelHeightConstraint;
   /** Provider service used to manage trip operations. */
   GRSCProviderService *_providerService;
   /** The current state of the mapview. */
   GRSCMapViewCustomerState _mapViewCustomerState;
-  /** The current GMTCJourneySharingSession.  */
+  /** The current GMTCJourneySharingSession. */
   GMTCJourneySharingSession *_journeySharingSession;
   /** The name of the last trip that was created. */
   NSString *_lastTripName;
-  /** The waypoint selector that will be used for pickup and drop off selection. */
-  GRSCWaypointSelector *_waypointSelector;
   /** The time to arrival at the current waypoint. */
   NSTimeInterval _timeToWaypoint;
-  /** The remaining distance in meters to the current waypoint.*/
+  /** The remaining distance in meters to the current waypoint. */
   int32_t _remainingDistanceInMeters;
-  /** The marker used to represent the pickup point.*/
-  GMSMarker *_pickupMarker;
   /** The marker used to represent the drop off point. */
   GMSMarker *_dropoffMarker;
-  /** The updated pickup location. */
+  /** The updated pickup location in the map view. */
   GMTSTerminalLocation *_updatedPickupLocation;
-  /** The updated dropoff location. */
+  /** The updated dropoff location in the map view. */
   GMTSTerminalLocation *_updatedDropoffLocation;
   /** Polyline used to display a path during trip preview. */
   GMSPolyline *_tripPreviewPolyline;
@@ -96,6 +97,8 @@ typedef NS_ENUM(NSUInteger, GRSCMapViewCustomerState) {
   GMSMarker *_previousTripDropoffMarker;
   /** Whether the trip being booked is a shared trip. */
   BOOL _isTripShared;
+  /** Whether to enable the Location Selection API. */
+  BOOL _locationSelectionEnabled;
 }
 
 - (void)viewDidLoad {
@@ -120,6 +123,11 @@ typedef NS_ENUM(NSUInteger, GRSCMapViewCustomerState) {
   [self.view addSubview:_bottomPanel];
   [self setBottomPanelConstrains];
   _providerService = [[GRSCProviderService alloc] init];
+
+  // If the Location Selection API key is not set, the app will direct the user flow to the user
+  // process without Location Selection.
+  _locationSelectionEnabled =
+      ![kUnsetLocationSelectionAPIKeyValue isEqual:kLocationSelectionAPIKey];
 
   // Persist the mapview location to San Francisco.
   [self resetMapViewCamera];
@@ -250,9 +258,32 @@ typedef NS_ENUM(NSUInteger, GRSCMapViewCustomerState) {
   [_waypointSelector startPickupSelection];
 }
 
+/** Starts the location selection pickup point state. */
+- (void)startLocationSelection {
+  [_waypointSelector stopPickupSelection];
+  [self startLocationSelectionWithPickupLocation:_waypointSelector.selectedPickupLocation
+                                      completion:^(NSError *_Nullable error) {
+                                        if (!error) {
+                                          _mapViewCustomerState =
+                                              GRSCMapViewCustomerStateConfirmPickupPoint;
+                                          [self drawTripPreviewPolyline];
+                                          [self centerMapViewCamera];
+                                        } else {
+                                          dispatch_async(dispatch_get_main_queue(), ^(void) {
+                                            [self startPickupSelectionInMapView];
+                                          });
+                                        }
+                                      }];
+}
+
 /** Displays drop-off confirmation and selects default drop-off location. */
 - (void)startDropoffSelection {
   _mapViewCustomerState = GRSCMapViewCustomerStateSelectingDropoff;
+  if (_locationSelectionEnabled) {
+    [self removeTripPreviewPolyline];
+    _pickupMarker.map = nil;
+    [self updateDropoffSelectionMapViewCamera];
+  }
   NSAttributedString *dropoffSelectionText = GRSCGetPartlyBoldAttributedString(
       GRSCBottomPanelSelectDropoffLocationTitleText, GRSCBottomPanelDropoffLocationText,
       _bottomPanel.titleLabel.font.pointSize);
@@ -262,8 +293,19 @@ typedef NS_ENUM(NSUInteger, GRSCMapViewCustomerState) {
                              forState:UIControlStateNormal];
   _bottomPanel.addIntermediateDestinationButton.hidden = NO;
 
-  [_waypointSelector stopPickupSelection];
+  if (!_locationSelectionEnabled) {
+    [_waypointSelector stopPickupSelection];
+  }
   [_waypointSelector startDropoffSelection];
+}
+
+/** Update camera position and zoom level of dropoff selection mapview. */
+- (void)updateDropoffSelectionMapViewCamera {
+  GMSCameraPosition *cameraPosition =
+      [GMSCameraPosition cameraWithLatitude:self.locationSelectionPickupPoint.point.latitude
+                                  longitude:self.locationSelectionPickupPoint.point.longitude
+                                       zoom:kGMTSCDefaultZoomLevel];
+  [_mapView setCamera:cameraPosition];
 }
 
 /** Displays trip confirmation view. */
@@ -285,17 +327,25 @@ typedef NS_ENUM(NSUInteger, GRSCMapViewCustomerState) {
   _mapViewCustomerState = GRSCMapViewCustomerStateBooking;
   [_waypointSelector stopDropoffSelection];
 
-  if (!_waypointSelector.selectedPickupLocation || !_waypointSelector.selectedDropoffLocation) {
+  if (!_waypointSelector.selectedPickupLocation || !_waypointSelector.selectedDropoffLocation ||
+      (_locationSelectionEnabled && !self.locationSelectionPickupPoint)) {
     return;
   }
 
   _bottomPanel.sharedTripTypeSwitchContainer.hidden = NO;
 
-  CLLocationCoordinate2D pickupPosition =
-      [_waypointSelector.selectedPickupLocation.point coordinate];
-  _pickupMarker = [GMSMarker markerWithPosition:pickupPosition];
-  _pickupMarker.icon = [UIImage imageNamed:kPickupSelectedImageName];
-  _pickupMarker.map = _mapView;
+  if (_locationSelectionEnabled) {
+    CLLocationCoordinate2D pickupPosition = [self.locationSelectionPickupPoint.point coordinate];
+    self.locationSelectionPickupPointMarker = [GMSMarker markerWithPosition:pickupPosition];
+    self.locationSelectionPickupPointMarker.icon = [UIImage imageNamed:kPickupSelectedImageName];
+    self.locationSelectionPickupPointMarker.map = _mapView;
+  } else {
+    CLLocationCoordinate2D pickupPosition =
+        [_waypointSelector.selectedPickupLocation.point coordinate];
+    _pickupMarker = [GMSMarker markerWithPosition:pickupPosition];
+    _pickupMarker.icon = [UIImage imageNamed:kPickupSelectedImageName];
+    _pickupMarker.map = _mapView;
+  }
 
   CLLocationCoordinate2D dropoffPosition =
       [_waypointSelector.selectedDropoffLocation.point coordinate];
@@ -309,10 +359,31 @@ typedef NS_ENUM(NSUInteger, GRSCMapViewCustomerState) {
 
 /** Draws a preview polyline from pickup to dropoff. */
 - (void)drawTripPreviewPolyline {
-  GMTSLatLng *pickupLocation = _waypointSelector.selectedPickupLocation.point;
-  GMTSLatLng *dropoffLocation = _waypointSelector.selectedDropoffLocation.point;
-  if (!pickupLocation || !dropoffLocation) {
-    return;
+  GMTSLatLng *pickupLocation;
+  GMTSLatLng *dropoffLocation;
+
+  if (_locationSelectionEnabled) {
+    // Draw the polyline between the location selection pickup point and the dropoff location
+    if (self.locationSelectionPickupPoint.point &&
+        _waypointSelector.selectedDropoffLocation.point) {
+      pickupLocation = self.locationSelectionPickupPoint.point;
+      dropoffLocation = _waypointSelector.selectedDropoffLocation.point;
+    }
+    // Draw the polyline between the selected pickup location and the location selection pickup
+    // point
+    else if (_waypointSelector.selectedPickupLocation && self.locationSelectionPickupPoint.point) {
+      pickupLocation = _waypointSelector.selectedPickupLocation.point;
+      dropoffLocation = self.locationSelectionPickupPoint.point;
+    } else {
+      return;
+    }
+  } else {
+    // Draw the polyline between the user-selected pickup location and the dropoff location
+    pickupLocation = _waypointSelector.selectedPickupLocation.point;
+    dropoffLocation = _waypointSelector.selectedDropoffLocation.point;
+    if (!pickupLocation || !dropoffLocation) {
+      return;
+    }
   }
 
   // Clear out existing polyline.
@@ -358,24 +429,24 @@ typedef NS_ENUM(NSUInteger, GRSCMapViewCustomerState) {
   }
 
   // Add bounds for pickup and dropoff locations if they exist.
-  if (_waypointSelector.selectedPickupLocation) {
-    bounds = [bounds includingCoordinate:_waypointSelector.selectedPickupLocation.point.coordinate];
+  if (_locationSelectionEnabled && self.locationSelectionPickupPoint) {
+    bounds = [bounds includingCoordinate:[self.locationSelectionPickupPoint.point coordinate]];
   }
   if (_waypointSelector.selectedIntermediateDestinations) {
     for (GMTSTerminalLocation *intermediateDestination in _waypointSelector
              .selectedIntermediateDestinations) {
-      bounds = [bounds includingCoordinate:intermediateDestination.point.coordinate];
+      bounds = [bounds includingCoordinate:[intermediateDestination.point coordinate]];
     }
   }
   if (_waypointSelector.selectedDropoffLocation) {
     bounds =
-        [bounds includingCoordinate:_waypointSelector.selectedDropoffLocation.point.coordinate];
+        [bounds includingCoordinate:[_waypointSelector.selectedDropoffLocation.point coordinate]];
   }
 
   // Update camera if the bounds contains valid points.
   if ([bounds isValid]) {
     GMSCameraPosition *updatedCameraPosition =
-        [_mapView cameraForBounds:bounds insets:GRSCStyleDefaulMapViewCameraPadding()];
+        [_mapView cameraForBounds:bounds insets:GRSCStyleDefaultMapViewCameraPadding()];
     if (updatedCameraPosition) {
       _mapView.camera = updatedCameraPosition;
     }
@@ -471,7 +542,10 @@ typedef NS_ENUM(NSUInteger, GRSCMapViewCustomerState) {
 
 /** Creates a new trip and updates the mapview state on trip creation. */
 - (void)createTrip {
-  GMTSTerminalLocation *pickupLocation = _waypointSelector.selectedPickupLocation;
+  GMTSTerminalLocation *pickupLocation = _locationSelectionEnabled
+                                             ? self.locationSelectionPickupPoint
+                                             : _waypointSelector.selectedPickupLocation;
+  ;
   GMTSTerminalLocation *dropoffLocation = _waypointSelector.selectedDropoffLocation;
   NSArray<GMTSTerminalLocation *> *intermediateDestinations =
       _waypointSelector.selectedIntermediateDestinations;
@@ -529,6 +603,13 @@ typedef NS_ENUM(NSUInteger, GRSCMapViewCustomerState) {
       [self startPickupSelection];
       break;
     case GRSCMapViewCustomerStateSelectingPickup:
+      if (_locationSelectionEnabled) {
+        [self startLocationSelection];
+      } else {
+        [self startDropoffSelection];
+      }
+      break;
+    case GRSCMapViewCustomerStateConfirmPickupPoint:
       [self startDropoffSelection];
       break;
     case GRSCMapViewCustomerStateSelectingDropoff:
@@ -601,6 +682,8 @@ typedef NS_ENUM(NSUInteger, GRSCMapViewCustomerState) {
   [self resetPanelState];
   [self removeWaypointMarkers];
   [self resetMapViewCamera];
+  [_waypointSelector resetAllPointSelection];
+  self.locationSelectionPickupPoint = nil;
   _lastTripName = nil;
   _journeySharingSession = nil;
   _isTripShared = NO;
@@ -610,8 +693,10 @@ typedef NS_ENUM(NSUInteger, GRSCMapViewCustomerState) {
 - (void)removeWaypointMarkers {
   _pickupMarker.map = nil;
   _dropoffMarker.map = nil;
+  self.locationSelectionPickupPointMarker.map = nil;
   _pickupMarker = nil;
   _dropoffMarker = nil;
+  self.locationSelectionPickupPointMarker = nil;
 }
 
 /** Removes the previous trip's dropoff marker from the mapview. */
@@ -696,7 +781,7 @@ typedef NS_ENUM(NSUInteger, GRSCMapViewCustomerState) {
 
   // Add a marker for this waypoint.
   [self removePreviousTripDropoffMarkerFromMap];
-  _previousTripDropoffMarker = [GMSMarker markerWithPosition:waypoint.location.point.coordinate];
+  _previousTripDropoffMarker = [GMSMarker markerWithPosition:[waypoint.location.point coordinate]];
   _previousTripDropoffMarker.map = _mapView;
   _previousTripDropoffMarker.icon = [UIImage imageNamed:kIntermediateDestinationImageName];
 }

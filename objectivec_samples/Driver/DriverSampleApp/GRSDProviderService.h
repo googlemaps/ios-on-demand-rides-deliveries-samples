@@ -54,11 +54,13 @@ typedef void (^GRSDCreateVehicleWithIDHandler)(GRSDVehicleModel *_Nullable vehic
  * @param tripStatus The trip status associated with the trip. It is set to @c GMSTripStatusUnknown
  * if there's an error fetching trip details from the provider.
  * @param waypoints The waypoints associated with the trip.
+ * @param routeList The route for the trip.
  * @param error Error when fetching trip details from the provider. It is nil if fetching trip
  * details from the provider succeeds.
  */
 typedef void (^GRSDFetchTripHandler)(NSString *_Nullable tripID, GMTSTripStatus tripStatus,
                                      NSArray<GMTSTripWaypoint *> *_Nullable waypoints,
+                                     NSMutableArray<GMTSLatLng *> *_Nullable routeList,
                                      NSError *_Nullable error);
 
 /**
@@ -85,6 +87,23 @@ typedef void (^GRSDFetchVehicleHandler)(NSArray<NSString *> *_Nullable matchedTr
                                         NSError *_Nullable error);
 
 /**
+ * Callback block definition for fetching vehicles.
+ *
+ * @param vehicles The list of vehicles of a specific restaurant ID.
+ * @param vehicleNametoWaypointsDictionary The mapping from vehicleNames to their waypoints.
+ * @param vehicleNametoFirstWaypointEtaDictionary The mapping from vehicleNames to their first
+ * waypoints ETAs.
+ * @param error Error when fetching a set of vehicles from the provider. It is nil if fetching the
+ * vehicles succeeds.
+ */
+typedef void (^GRSDFetchVehiclesWithRestaurantIDHandler)(
+    NSArray<GMTSVehicle *> *_Nullable vehicles,
+    NSDictionary<NSString *, NSArray<GMTSTripWaypoint *> *>
+        *_Nullable vehicleNametoWaypointsDictionary,
+    NSDictionary<NSString *, NSNumber *> *_Nullable vehicleNametoFirstWaypointEtaDictionary,
+    NSError *_Nullable error);
+
+/**
  * Callback block definition of updating a vehicle.
  *
  * @param vehicleModel The model representing the updated vehicle. It is nil if there's an error
@@ -99,10 +118,12 @@ typedef void (^GRSDUpdateVehicleHandler)(GRSDVehicleModel *_Nullable vehicleMode
  * Creates a new vehicle with the provider.
  *
  * @param vehicleID The vehicle ID associated with the driver.
+ * @param restaurantID The restaurant ID associated with the driver.
  * @param isBackToBackEnabled Whether the vehicle should be enabled for back-to-back trips.
  * @param completion The block executed when the request finishes.
  */
 - (void)createVehicleWithID:(NSString *)vehicleID
+               restaurantID:(NSString *)restaurantID
         isBackToBackEnabled:(BOOL)isBackToBackEnabled
                  completion:(GRSDCreateVehicleWithIDHandler)completion;
 
@@ -130,6 +151,15 @@ typedef void (^GRSDUpdateVehicleHandler)(GRSDVehicleModel *_Nullable vehicleMode
  * @param completion The block executed when the request finishes.
  */
 - (void)fetchVehicleWithID:(NSString *)vehicleID completion:(GRSDFetchVehicleHandler)completion;
+
+/**
+ * Fetches a list of vehicles for the given restaurant ID.
+ *
+ * @param restaurantID The ID of the restaurant whose vehicles we want to fetch.
+ * @param completion The block executed when the request finishes.
+ */
+- (void)fetchVehiclesWithRestaurantID:(NSString *)restaurantID
+                           completion:(GRSDFetchVehiclesWithRestaurantIDHandler)completion;
 
 /**
  * Updates a trip to a new status.

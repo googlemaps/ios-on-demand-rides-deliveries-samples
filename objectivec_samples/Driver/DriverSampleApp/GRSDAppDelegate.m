@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Google LLC. All rights reserved.
+ * Copyright 2022 Google LLC. All rights reserved.
  *
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
@@ -18,7 +18,11 @@
 #import <GoogleMaps/GoogleMaps.h>
 
 #import <GoogleRidesharingDriver/GoogleRidesharingDriver.h>
+
 #import "GRSDAPIConstants.h"
+
+#import "GRSDTabBarController.h"
+
 #import "GRSDViewController.h"
 
 @implementation GRSDAppDelegate
@@ -34,11 +38,9 @@
   [[UIApplication sharedApplication] registerUserNotificationSettings:userNotificationSettings];
 
   self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
-  GRSDViewController *driverViewController = [[GRSDViewController alloc] init];
+  GRSDTabBarController *tabBarViewController = [[GRSDTabBarController alloc] init];
 
-  UINavigationController *navigationController =
-      [[UINavigationController alloc] initWithRootViewController:driverViewController];
-  _window.rootViewController = navigationController;
+  _window.rootViewController = tabBarViewController;
   [self.window makeKeyAndVisible];
 
   return YES;

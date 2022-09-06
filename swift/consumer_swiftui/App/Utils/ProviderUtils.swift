@@ -19,11 +19,8 @@ import GoogleRidesharingConsumer
 /// Helper methods for `ProviderService` and `AuthTokenProvider`.
 enum ProviderUtils {
 
-  /// Base provider URL Strings.
-  private static let baseProviderURLString = "http://localhost:8080"
-
   static func providerURL(path: String) -> URL {
-    let baseProviderURL = URL(string: baseProviderURLString)
+    let baseProviderURL = URL(string: APIConstants.providerBaseURLString)
     return URL(string: path, relativeTo: baseProviderURL)!
   }
 

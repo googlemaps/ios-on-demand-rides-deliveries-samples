@@ -39,6 +39,12 @@ struct JourneySharingView: View {
     case .initial:
       startPickupSelection()
     case .selectingPickup:
+      if APIConstants.enableLocationSelection {
+        startLocationSelectionPickupPoint()
+      } else {
+        startDropoffSelection()
+      }
+    case .confirmingLocationSelectionPickupPoint:
       startDropoffSelection()
     case .selectingDropoff:
       startTripPreview()
@@ -54,31 +60,36 @@ struct JourneySharingView: View {
   private func tapAddIntermediateDestinationAction() {
     modelData.intermediateDestinations.append(modelData.dropoffLocation)
     NotificationCenter.default.post(
-      name: .intermediateDestinationDidAdd, object: nil,
-      userInfo: nil)
+      name: .intermediateDestinationDidAdd, object: nil)
   }
 
   /// Updates UI elements and customer state when the user indicates pickup location.
   private func startPickupSelection() {
     modelData.controlButtonLabel = Strings.controlPanelConfirmPickupButtonText
-    modelData.staticLabel = Strings.tripInfoViewStaticText
+    modelData.staticLabel = Strings.tripInfoViewUserSelectLocationStaticText
     modelData.tripInfoLabel = Strings.selectPickupLocationText
     modelData.customerState = .selectingPickup
     NotificationCenter.default.post(
-      name: .stateDidChange, object: MapViewController.selectPickupNotificationObjectType,
-      userInfo: nil)
+      name: .stateDidChange, object: MapViewController.selectPickupNotificationObjectType)
+  }
+
+  /// Sends the notification to the map view controller to start getting the location selection
+  /// pickup point.
+  private func startLocationSelectionPickupPoint() {
+    NotificationCenter.default.post(
+      name: .stateDidChange,
+      object: MapViewController.confirmLocationSelectionPickupPointNotificationObjectType)
   }
 
   /// Updates UI elements and customer state when the user indicates drop-off location.
   private func startDropoffSelection() {
     modelData.controlButtonLabel = Strings.controlPanelConfirmDropoffButtonText
     modelData.tripInfoLabel = Strings.selectDropoffLocationText
-    modelData.staticLabel = Strings.tripInfoViewStaticText
+    modelData.staticLabel = Strings.tripInfoViewUserSelectLocationStaticText
     modelData.customerState = .selectingDropoff
     modelData.intermediateDestinations.removeAll()
     NotificationCenter.default.post(
-      name: .stateDidChange, object: MapViewController.selectDropoffNotificationObjectType,
-      userInfo: nil)
+      name: .stateDidChange, object: MapViewController.selectDropoffNotificationObjectType)
   }
 
   /// Updates UI elements and customer state when the user previews the trip.
@@ -95,16 +106,14 @@ struct JourneySharingView: View {
   /// a trip now.
   private func bookTrip() {
     NotificationCenter.default.post(
-      name: .stateDidChange, object: MapViewController.bookTripNotificationObjectType,
-      userInfo: nil)
+      name: .stateDidChange, object: MapViewController.bookTripNotificationObjectType)
   }
 
   /// Sends out a notification and lets `MapViewController` know that a user is cancelling
   /// a trip now.
   private func cancelTrip() {
     NotificationCenter.default.post(
-      name: .stateDidChange, object: MapViewController.cancelTripNotificationObjectType,
-      userInfo: nil)
+      name: .stateDidChange, object: MapViewController.cancelTripNotificationObjectType)
   }
 }
 

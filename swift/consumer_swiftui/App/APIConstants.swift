@@ -20,4 +20,15 @@ enum APIConstants {
 
   /// The Project ID of the Google Cloud Project used to call the Fleet Engine APIs.
   static let providerID = "YOUR_PROVIDER_ID"
+
+  /// The base URL for requests to the provider.
+  static let providerBaseURLString = "http://localhost:8080"
+
+  /// The Google Geo Location Selection API key used to fetch associated pickup points.
+  static let locationSelectionAPIKey = "YOUR_API_KEY"
+
+  /// A boolean indicating whether to enable the Location Selection API.
+  /// If the Location Selection API key is not set, the app will direct the user flow to the user
+  /// process without Location Selection.
+  static let enableLocationSelection = APIConstants.locationSelectionAPIKey != "YOUR_API_KEY"
 }

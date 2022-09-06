@@ -50,6 +50,15 @@ NS_ASSUME_NONNULL_BEGIN
 /** Label used to display the next trip ID for a b2b trip in the panel. */
 @property(nonatomic, strong, readonly, nonnull) UILabel *nextTripIDLabel;
 
+/** Label used to display the vehicle latitude and longitude in the panel. */
+@property(nonatomic, strong, readonly, nonnull) UILabel *locationLabel;
+
+/** Label used to display the vehicle status in the panel. */
+@property(nonatomic, strong, readonly, nonnull) UILabel *statusLabel;
+
+/** Label used to display the vehicle ETA to the next waypoint in the panel. */
+@property(nonatomic, strong, readonly, nonnull) UILabel *etaLabel;
+
 /** Action button located at the bottom of the panel. */
 @property(nonatomic, strong, readonly, nonnull) UIButton *actionButton;
 

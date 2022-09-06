@@ -79,4 +79,4 @@ FOUNDATION_EXTERN CGFloat GRSCBottomPanelHeightLarge(void);
 /**
  * Default padding for the mapview camera.
  */
-FOUNDATION_EXTERN UIEdgeInsets GRSCStyleDefaulMapViewCameraPadding(void);
+FOUNDATION_EXTERN UIEdgeInsets GRSCStyleDefaultMapViewCameraPadding(void);

@@ -134,6 +134,8 @@ static UIStackView *CreateSharedTripTypeContainer(void) {
     _titleLabel = [[UILabel alloc] init];
     _titleLabel.font = [UIFont systemFontOfSize:GRSCStyleMediumFontSize()];
     _titleLabel.hidden = YES;
+    _titleLabel.numberOfLines = 2;
+    _titleLabel.adjustsFontSizeToFitWidth = YES;
     titleStackView.translatesAutoresizingMaskIntoConstraints = NO;
     [titleStackView.leadingAnchor constraintEqualToAnchor:headerView.leadingAnchor].active = YES;
     [titleStackView.trailingAnchor constraintEqualToAnchor:_actionButton.trailingAnchor].active =

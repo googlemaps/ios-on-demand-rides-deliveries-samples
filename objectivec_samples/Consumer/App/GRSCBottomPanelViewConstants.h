@@ -26,6 +26,11 @@ FOUNDATION_EXTERN NSString *const GRSCBottomPanelRequestRideButtonText;
 FOUNDATION_EXTERN NSString *const GRSCBottomPanelConfirmPickupButtonText;
 
 /**
+ * Text displayed on the bottom panel button for the confirm location selection pickup point state.
+ */
+FOUNDATION_EXTERN NSString *const GRSCBottomPanelConfirmPickupPointButtonText;
+
+/**
  * Text displayed on the bottom panel button for the confirm drop off state.
  */
 FOUNDATION_EXTERN NSString *const GRSCBottomPanelConfirmDropoffButtonText;
@@ -46,6 +51,24 @@ FOUNDATION_EXTERN NSString *const GRSCBottomPanelCancelRideButtonText;
 FOUNDATION_EXTERN NSString *const GRSCBottomPanelSelectPickupLocationTitleText;
 
 /**
+ * Text displayed on the head part of the bottom panel title for the location selection pickup point
+ * state.
+ */
+FOUNDATION_EXTERN NSString *const GRSCBottomPanelLocationSelectionPickupPointTitleTextHead;
+
+/**
+ * Text displayed on the tail part of the bottom panel title for the location selection pickup point
+ * state.
+ */
+FOUNDATION_EXTERN NSString *const GRSCBottomPanelLocationSelectionPickupPointTitleTextTail;
+
+/**
+ * Text displayed on the bottom panel title when no available location selection pickup point
+ * returned.
+ */
+FOUNDATION_EXTERN NSString *const GRSCBottomPanelLocationSelectionFailedTitleText;
+
+/**
  * Text displayed on the bottom panel title for the select drop off state.
  */
 FOUNDATION_EXTERN NSString *const GRSCBottomPanelSelectDropoffLocationTitleText;
@@ -59,6 +82,11 @@ FOUNDATION_EXTERN NSString *const GRSCBottomPanelWaitingForDriverMatchTitleText;
  * Pickup location text for the bottom panel.
  */
 FOUNDATION_EXTERN NSString *const GRSCBottomPanelPickupLocationText;
+
+/**
+ * Location selection pickup point text for the bottom panel.
+ */
+FOUNDATION_EXTERN NSString *const GRSCBottomPanelPickupPointText;
 
 /**
  * Drop off location text for the bottom panel.

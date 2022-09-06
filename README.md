@@ -62,6 +62,15 @@ After all prerequisites are met:
     - For Objective-C, update `kMapsAPIKey` in `GRSCAPIConstants.m` for the
       Consumer app and in `GRSDAPIConstants.m` for the Driver app.
 
+1.  (Optional) Follow the
+    [Use API Keys with Location Selection API guide](https://developers.google.com/maps/documentation/transportation-logistics/on-demand-rides-deliveries-solution/pickup-and-dropoff-selection/location-selection/get-api-key)
+    to add your Location Selection API key to your app.
+
+    - For Swift, update `locationSelectionAPIKey` in `APIConstants.swift` for Consumer.
+
+    - For Objective-C, update `kLocationSelectionAPIKey` in `GRSCAPIConstants.m` for the
+      Consumer app.
+
 1.  Add the Provider ID to your app. The Provider ID is the Project ID of the
     Google Cloud Project that contains the service account used to call the
     Fleet Engine APIs.

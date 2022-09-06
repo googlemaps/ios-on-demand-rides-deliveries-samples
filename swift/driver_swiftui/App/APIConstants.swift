@@ -20,4 +20,7 @@ enum APIConstants {
 
   /// The Project ID of the Google Cloud Project used to call the Fleet Engine APIs.
   static let providerID = "YOUR_PROVIDER_ID"
+
+  /// The base URL for requests to the provider.
+  static let providerBaseURLString = "http://localhost:8080"
 }

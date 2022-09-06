@@ -18,16 +18,18 @@
 
 static NSString *const kEditVehicleTitle = @"Edit Vehicle";
 
-static const NSInteger kNumberOfSections = 3;
+static const NSInteger kNumberOfSections = 4;
 
 // TableView Section Titles.
 static NSString *const kSupportedTripTypesSectionTitle = @"SUPPORTED TRIP TYPES";
 static NSString *const kMaximumCapacitySectionTitle = @"MAXIMUM CAPACITY";
+static NSString *const kRestaurantIDSectionTitle = @"RESTAURANT ID";
 
 // TableView Cell Identifiers.
 static NSString *const kSupportedTripTypesCellID = @"SupportedTripTypesCell";
 static NSString *const kMaximumCapacityCellID = @"MaximumCapacityCell";
 static NSString *const kBackToBackEnabledCellID = @"BackToBackEnabledCell";
+static NSString *const kRestaurantIDCellID = @"RestaurantIDCell";
 
 // Cell Text for the different trip types.
 static NSString *const kExclusiveTripTypeCellText = @"Exclusive";
@@ -40,6 +42,7 @@ typedef NS_ENUM(NSInteger, EditVehicleTableViewSection) {
   EditVehicleTableViewSectionSupportedTripTypes = 0,
   EditVehicleTableViewSectionMaximumCapacity,
   EditVehicleTableViewSectionBackToBackEnabled,
+  EditVehicleTableViewSectionRestaurantID
 };
 
 /** Custom table view cell used to edit the maximum capacity of a vehicle. */
@@ -58,6 +61,13 @@ typedef NS_ENUM(NSInteger, EditVehicleTableViewSection) {
 
 @end
 
+@interface VehicleRestaurantIDTableViewCell : UITableViewCell
+
+/** The text field where the restaurantID can be modified */
+@property(nonatomic) UITextField *restaurantIDField;
+
+@end
+
 @interface GRSDEditVehicleTableViewController ()
 @end
 
@@ -66,6 +76,7 @@ typedef NS_ENUM(NSInteger, EditVehicleTableViewSection) {
   ProviderSupportedTripType _selectedTripTypes;
   NSUInteger _selectedMaximumCapacity;
   BOOL _selectedIsBackToBackEnabled;
+  NSString *_selectedRestaurantID;
 }
 
 - (instancetype)initWithVehicleModel:(GRSDVehicleModel *)vehicleModel {
@@ -77,6 +88,7 @@ typedef NS_ENUM(NSInteger, EditVehicleTableViewSection) {
     _selectedTripTypes = vehicleModel.supportedTripTypes;
     _selectedMaximumCapacity = vehicleModel.maximumCapacity;
     _selectedIsBackToBackEnabled = vehicleModel.isBackToBackEnabled;
+    _selectedRestaurantID = vehicleModel.restaurantID;
   }
   return self;
 }
@@ -98,11 +110,14 @@ typedef NS_ENUM(NSInteger, EditVehicleTableViewSection) {
          forCellReuseIdentifier:kMaximumCapacityCellID];
   [self.tableView registerClass:[VehicleIsBackToBackTableViewCell class]
          forCellReuseIdentifier:kBackToBackEnabledCellID];
+  [self.tableView registerClass:[VehicleRestaurantIDTableViewCell class]
+         forCellReuseIdentifier:kRestaurantIDCellID];
 }
 
 - (void)didTapNavigationBarButtonSave {
   GRSDVehicleModel *updatedVehicleModel =
       [[GRSDVehicleModel alloc] initWithVehicleID:_defaultVehicleModel.vehicleID
+                                     restaurantID:_selectedRestaurantID
                                   maximumCapacity:_selectedMaximumCapacity
                                supportedTripTypes:_selectedTripTypes
                               isBackToBackEnabled:_selectedIsBackToBackEnabled];
@@ -170,6 +185,18 @@ typedef NS_ENUM(NSInteger, EditVehicleTableViewSection) {
   _selectedIsBackToBackEnabled = isBackToBackDriverSwitch.isOn;
 }
 
+- (void)updateRestaurantIDCell:(VehicleRestaurantIDTableViewCell *)restaurantIDCell {
+  UITextField *restaurantIDField = restaurantIDCell.restaurantIDField;
+  restaurantIDField.placeholder = _selectedRestaurantID;
+  [restaurantIDField addTarget:self
+                        action:@selector(textFieldDidChange:)
+              forControlEvents:UIControlEventEditingChanged];
+}
+
+- (void)textFieldDidChange:(UITextField *)restaurantIDField {
+  _selectedRestaurantID = restaurantIDField.text;
+}
+
 #pragma mark - UITableViewControllerDataSource
 
 - (UITableViewCell *)tableView:(UITableView *)tableView
@@ -191,6 +218,11 @@ typedef NS_ENUM(NSInteger, EditVehicleTableViewSection) {
                                                      reuseIdentifier:kBackToBackEnabledCellID];
       [self updateBackToBackCell:(VehicleIsBackToBackTableViewCell *)cell];
       break;
+    case EditVehicleTableViewSectionRestaurantID:
+      cell = [[VehicleRestaurantIDTableViewCell alloc] initWithStyle:UITableViewCellStyleDefault
+                                                     reuseIdentifier:kRestaurantIDCellID];
+      [self updateRestaurantIDCell:(VehicleRestaurantIDTableViewCell *)cell];
+      break;
   }
   return cell;
 }
@@ -201,6 +233,8 @@ typedef NS_ENUM(NSInteger, EditVehicleTableViewSection) {
       return kSupportedTripTypesSectionTitle;
     case EditVehicleTableViewSectionMaximumCapacity:
       return [self maximumCapacitySectionTitle];
+    case EditVehicleTableViewSectionRestaurantID:
+      return kRestaurantIDSectionTitle;
     default:
       return nil;
   }
@@ -212,6 +246,8 @@ typedef NS_ENUM(NSInteger, EditVehicleTableViewSection) {
       return 2;
     case EditVehicleTableViewSectionMaximumCapacity:
     case EditVehicleTableViewSectionBackToBackEnabled:
+      return 1;
+    case EditVehicleTableViewSectionRestaurantID:
       return 1;
     default:
       return 0;
@@ -276,6 +312,35 @@ typedef NS_ENUM(NSInteger, EditVehicleTableViewSection) {
     [switchContainer.bottomAnchor constraintEqualToAnchor:cellMargins.bottomAnchor].active = YES;
     [switchContainer.leadingAnchor constraintEqualToAnchor:cellMargins.leadingAnchor].active = YES;
     [switchContainer.trailingAnchor constraintEqualToAnchor:cellMargins.trailingAnchor].active =
+        YES;
+    self.selectionStyle = UITableViewCellSelectionStyleNone;
+  }
+  return self;
+}
+
+@end
+
+@implementation VehicleRestaurantIDTableViewCell
+
+- (instancetype)initWithStyle:(UITableViewCellStyle)style
+              reuseIdentifier:(NSString *)reuseIdentifier {
+  self = [super initWithStyle:style reuseIdentifier:reuseIdentifier];
+  if (self) {
+    _restaurantIDField = [[UITextField alloc] initWithFrame:CGRectZero];
+    _restaurantIDField.autocorrectionType = 1;
+    _restaurantIDField.autocapitalizationType = 0;
+    _restaurantIDField.returnKeyType = UIReturnKeyDone;
+    UIStackView *textFieldContainer =
+        [[UIStackView alloc] initWithArrangedSubviews:@[ _restaurantIDField ]];
+    textFieldContainer.alignment = UIStackViewAlignmentCenter;
+    [self.contentView addSubview:textFieldContainer];
+    textFieldContainer.translatesAutoresizingMaskIntoConstraints = NO;
+    UILayoutGuide *cellMargins = self.layoutMarginsGuide;
+    [textFieldContainer.topAnchor constraintEqualToAnchor:cellMargins.topAnchor].active = YES;
+    [textFieldContainer.bottomAnchor constraintEqualToAnchor:cellMargins.bottomAnchor].active = YES;
+    [textFieldContainer.leadingAnchor constraintEqualToAnchor:cellMargins.leadingAnchor].active =
+        YES;
+    [textFieldContainer.trailingAnchor constraintEqualToAnchor:cellMargins.trailingAnchor].active =
         YES;
     self.selectionStyle = UITableViewCellSelectionStyleNone;
   }

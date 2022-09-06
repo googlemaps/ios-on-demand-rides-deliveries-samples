@@ -43,12 +43,11 @@ static UILabel *CreateTitleLabel(void) {
   UILabel *titleLabel = [[UILabel alloc] init];
   titleLabel.translatesAutoresizingMaskIntoConstraints = NO;
   titleLabel.font = [UIFont boldSystemFontOfSize:kDefaultFontSize];
-  titleLabel.numberOfLines = 0;
   return titleLabel;
 }
 
-/** Returns a styled label to be used for displaying a trip ID in the panel. */
-static UILabel *CreateTripIDLabel(void) {
+/** Returns a styled label to be used for the panel subtitles. */
+static UILabel *CreateSubtitleLabel(void) {
   UILabel *subtitleLabel = [[UILabel alloc] init];
   subtitleLabel.translatesAutoresizingMaskIntoConstraints = NO;
   subtitleLabel.font = [UIFont systemFontOfSize:kSubtitleFontSize];
@@ -78,9 +77,15 @@ static UILabel *CreateTripIDLabel(void) {
 
     _titleLabel = CreateTitleLabel();
     _titleLabel.text = title;
-    _tripIDLabel = CreateTripIDLabel();
-    _nextTripIDLabel = CreateTripIDLabel();
+    _tripIDLabel = CreateSubtitleLabel();
+    _nextTripIDLabel = CreateSubtitleLabel();
     _nextTripIDLabel.hidden = YES;
+    _locationLabel = CreateSubtitleLabel();
+    _locationLabel.hidden = YES;
+    _statusLabel = CreateSubtitleLabel();
+    _statusLabel.hidden = YES;
+    _etaLabel = CreateSubtitleLabel();
+    _etaLabel.hidden = YES;
     _actionButton = CreateActionButton();
     [_actionButton.heightAnchor constraintEqualToConstant:kButtonHeight].active = YES;
     [_actionButton addTarget:buttonTarget
@@ -91,6 +96,9 @@ static UILabel *CreateTripIDLabel(void) {
     [self addArrangedSubview:_titleLabel];
     [self addArrangedSubview:_tripIDLabel];
     [self addArrangedSubview:_nextTripIDLabel];
+    [self addArrangedSubview:_locationLabel];
+    [self addArrangedSubview:_statusLabel];
+    [self addArrangedSubview:_etaLabel];
     [self addArrangedSubview:_actionButton];
   }
   return self;

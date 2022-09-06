@@ -23,6 +23,8 @@
     3B2C6D4D24C0F56E00D2BEE8 /* GRSCProviderService.m in Sources */ = {isa = PBXBuildFile; fileRef = 3B2C6D3E24C0F56E00D2BEE8 /* GRSCProviderService.m */; };
     3B2C6D4E24C0F56E00D2BEE8 /* GRSCWaypointSelector.m in Sources */ = {isa = PBXBuildFile; fileRef = 3B2C6D3F24C0F56E00D2BEE8 /* GRSCWaypointSelector.m */; };
     3B2C6D4F24C0F56E00D2BEE8 /* GRSCBottomPanelViewConstants.m in Sources */ = {isa = PBXBuildFile; fileRef = 3B2C6D4024C0F56E00D2BEE8 /* GRSCBottomPanelViewConstants.m */; };
+    170DC67E289056A000F1972E /* GRSCMapViewController+LocationSelection.m in Sources */ = {isa = PBXBuildFile; fileRef = 170DC67D289056A000F1972E /* GRSCMapViewController+LocationSelection.m */; };
+		170DC681289056B400F1972E /* GRSCLocationSelectionService.m in Sources */ = {isa = PBXBuildFile; fileRef = 170DC680289056B400F1972E /* GRSCLocationSelectionService.m */; };
     C0B948B48A2B8CF662938491 /* libPods-ConsumerSampleApp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 29CACA956BA65AB9016E8EFB /* libPods-ConsumerSampleApp.a */; };
 /* End PBXBuildFile section */
 
@@ -58,6 +60,11 @@
     3B2C6D3E24C0F56E00D2BEE8 /* GRSCProviderService.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GRSCProviderService.m; sourceTree = "<group>"; };
     3B2C6D3F24C0F56E00D2BEE8 /* GRSCWaypointSelector.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GRSCWaypointSelector.m; sourceTree = "<group>"; };
     3B2C6D4024C0F56E00D2BEE8 /* GRSCBottomPanelViewConstants.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GRSCBottomPanelViewConstants.m; sourceTree = "<group>"; };
+    170DC682289056C200F1972E /* GRSCMapViewController+Protected.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "GRSCMapViewController+Protected.h"; sourceTree = "<group>"; };
+    170DC67C2890569700F1972E /* GRSCMapViewController+LocationSelection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "GRSCMapViewController+LocationSelection.h"; sourceTree = "<group>"; };
+    170DC67D289056A000F1972E /* GRSCMapViewController+LocationSelection.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "GRSCMapViewController+LocationSelection.m"; sourceTree = "<group>"; };
+    170DC67F289056AC00F1972E /* GRSCLocationSelectionService.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GRSCLocationSelectionService.h; sourceTree = "<group>"; };
+    170DC680289056B400F1972E /* GRSCLocationSelectionService.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GRSCLocationSelectionService.m; sourceTree = "<group>"; };
     3B2C6D4124C0F56E00D2BEE8 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
     442100B9D331F93700F7C4DF /* Pods-ConsumerSampleApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ConsumerSampleApp.release.xcconfig"; path = "Target Support Files/Pods-ConsumerSampleApp/Pods-ConsumerSampleApp.release.xcconfig"; sourceTree = "<group>"; };
     9873B096E90A52C3BF31D344 /* Pods-ConsumerSampleApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ConsumerSampleApp.debug.xcconfig"; path = "Target Support Files/Pods-ConsumerSampleApp/Pods-ConsumerSampleApp.debug.xcconfig"; sourceTree = "<group>"; };
@@ -109,8 +116,13 @@
         3B2C6D3724C0F56E00D2BEE8 /* GRSCBottomPanelView.m */,
         3B2C6D3224C0F56E00D2BEE8 /* GRSCBottomPanelViewConstants.h */,
         3B2C6D4024C0F56E00D2BEE8 /* GRSCBottomPanelViewConstants.m */,
+        170DC67F289056AC00F1972E /* GRSCLocationSelectionService.h */,
+        170DC680289056B400F1972E /* GRSCLocationSelectionService.m */,
         3B2C6D3624C0F56E00D2BEE8 /* GRSCMapViewController.h */,
         3B2C6D2824C0F56E00D2BEE8 /* GRSCMapViewController.m */,
+        170DC67C2890569700F1972E /* GRSCMapViewController+LocationSelection.h */,
+        170DC67D289056A000F1972E /* GRSCMapViewController+LocationSelection.m */,
+        170DC682289056C200F1972E /* GRSCMapViewController+Protected.h */,
         3B2C6D2E24C0F56E00D2BEE8 /* GRSCProviderService.h */,
         3B2C6D3E24C0F56E00D2BEE8 /* GRSCProviderService.m */,
         3B2C6D2924C0F56E00D2BEE8 /* GRSCProviderUtils.h */,
@@ -271,6 +283,8 @@
         3B2C6D4324C0F56E00D2BEE8 /* GRSCAuthToken.m in Sources */,
         3B2C6D4524C0F56E00D2BEE8 /* GRSCStyle.m in Sources */,
         3B2C6D4A24C0F56E00D2BEE8 /* GRSCBottomPanelView.m in Sources */,
+        170DC67E289056A000F1972E /* GRSCMapViewController+LocationSelection.m in Sources */,
+        170DC681289056B400F1972E /* GRSCLocationSelectionService.m in Sources */,
         3B2C6D4B24C0F56E00D2BEE8 /* main.m in Sources */,
         3B2C6D4424C0F56E00D2BEE8 /* GRSCAppDelegate.m in Sources */,
       );

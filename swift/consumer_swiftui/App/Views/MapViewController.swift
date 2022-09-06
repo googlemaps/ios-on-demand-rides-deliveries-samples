@@ -23,6 +23,10 @@ class MapViewController: UIViewController, GMTCMapViewDelegate, GMTCTripModelSub
   /// Notification object type when seleting a pickup location.
   static let selectPickupNotificationObjectType = "selectingPickup"
 
+  /// Notification object type when confirming the location selection pickup point.
+  static let confirmLocationSelectionPickupPointNotificationObjectType =
+    "confirmLocationSelectionPickupPoint"
+
   /// Notification object type when seleting a dropoff location.
   static let selectDropoffNotificationObjectType = "selectingDropoff"
 
@@ -41,11 +45,14 @@ class MapViewController: UIViewController, GMTCMapViewDelegate, GMTCTripModelSub
   /// The name for pickup selection marker.
   static let pickupMarkerIconName = "grc_ic_wait_pickup_marker"
 
+  /// The name for user-selected pickup location marker.
+  static let selectedPickupLocationMarkerIconName = "grc_ic_pickup_selected"
+
   /// The name for intermediate destination marker.
   static let intermediateDestinationMarkerIconName = "gmtc_ic_multidestination_point"
 
   /// The `ModelData` containing the primary state of the application.
-  private let modelData: ModelData
+  let modelData: ModelData
 
   // MARK: - MapView variables
 
@@ -96,6 +103,7 @@ class MapViewController: UIViewController, GMTCMapViewDelegate, GMTCTripModelSub
   override func loadView() {
     super.loadView()
     pickupMarker = GMSMarker()
+    self.locationSelectionPickupPointMarker = GMSMarker()
     previousTripDropoffMarker = GMSMarker()
     setPolylineCustomization()
     self.view = uiView
@@ -151,6 +159,7 @@ class MapViewController: UIViewController, GMTCMapViewDelegate, GMTCTripModelSub
       guard let currentJourneySharingSession = journeySharingSession else { return }
       uiView.hide(currentJourneySharingSession)
       resetPanelView()
+      resetMarkers()
     }
   }
 
@@ -158,6 +167,7 @@ class MapViewController: UIViewController, GMTCMapViewDelegate, GMTCTripModelSub
 
   /// Resets labels on the `ControlPanelView`.
   private func resetPanelView() {
+    modelData.locationSelectionWalkingDistance = 0
     modelData.timeToWaypoint = 0
     modelData.remainingDistanceInMeters = 0
     modelData.tripID = ""
@@ -170,6 +180,7 @@ class MapViewController: UIViewController, GMTCMapViewDelegate, GMTCTripModelSub
   private func resetMarkers() {
     pickupMarker.map = nil
     pickupMarker = GMSMarker()
+    self.locationSelectionPickupPointMarker.map = nil
     for intermediateDestinationMarker in intermediateDestinationMarkers {
       intermediateDestinationMarker.map = nil
     }
@@ -182,8 +193,8 @@ class MapViewController: UIViewController, GMTCMapViewDelegate, GMTCTripModelSub
   private func setPickupLocation(_ location: CLLocationCoordinate2D) {
     if selectedMarker == nil {
       selectedMarker = GMSMarker()
-      selectedMarker?.map = mapView
     }
+    selectedMarker?.map = mapView
     selectedMarker?.position = location
     selectedMarker?.icon = UIImage(named: Self.pickupMarkerIconName)
 
@@ -193,8 +204,18 @@ class MapViewController: UIViewController, GMTCMapViewDelegate, GMTCTripModelSub
       accessPointID: nil)
   }
 
+  /// Starts the location selection pickup point state.
+  private func setLocationSelection(location: CLLocationCoordinate2D) {
+    let latLng = GMTSLatLng(latitude: location.latitude, longitude: location.longitude)
+    startLocationSelection(
+      pickupLocation: GMTSTerminalLocation(
+        point: latLng, label: nil, description: nil, placeID: nil, generatedID: nil,
+        accessPointID: nil))
+  }
+
   /// Sets and displays the tentative dropoff location on `mapView` at a given `location`.
   private func setDropoffLocation(_ location: CLLocationCoordinate2D) {
+    selectedMarker?.map = mapView
     selectedMarker?.position = location
     selectedMarker?.icon = GMSMarker.markerImage(with: .red)
 
@@ -335,14 +356,34 @@ class MapViewController: UIViewController, GMTCMapViewDelegate, GMTCTripModelSub
     guard let updateConsumerState = notification.object as? String else { return }
     if updateConsumerState == Self.selectPickupNotificationObjectType {
       setPickupLocation(mapView.camera.target)
-    } else if updateConsumerState == Self.selectDropoffNotificationObjectType {
-      // Show the pickup marker once the user has confirmed the pickup location.
+      if APIConstants.enableLocationSelection {
+        // Remove the pickup marker when the location selection fails and begins selecting another
+        // pickup location.
+        pickupMarker.map = nil
+      }
+    } else if updateConsumerState == Self.confirmLocationSelectionPickupPointNotificationObjectType
+    {
+      // Show the pickup marker in the map view once the user has confirmed the pickup location.
       guard let point = modelData.pickupLocation.point else { return }
       pickupMarker.map = mapView
-      pickupMarker.icon = UIImage(named: Self.pickupMarkerIconName)
+      pickupMarker.icon = UIImage(named: Self.selectedPickupLocationMarkerIconName)
       pickupMarker.position = CLLocationCoordinate2D(
         latitude: point.latitude, longitude: point.longitude)
-
+      // Show the location selection pickup point marker in the map view.
+      setLocationSelection(location: pickupMarker.position)
+      // Make the selected marker disappear in the map view.
+      selectedMarker?.map = nil
+    } else if updateConsumerState == Self.selectDropoffNotificationObjectType {
+      if APIConstants.enableLocationSelection {
+        pickupMarker.map = nil
+      } else {
+        guard let point = modelData.pickupLocation.point else { return }
+        pickupMarker.map = mapView
+        pickupMarker.icon = UIImage(named: Self.pickupMarkerIconName)
+        pickupMarker.position = CLLocationCoordinate2D(
+          latitude: point.latitude, longitude: point.longitude)
+        setDropoffLocation(mapView.camera.target)
+      }
       setDropoffLocation(mapView.camera.target)
     } else if updateConsumerState == Self.bookTripNotificationObjectType {
       bookTrip()

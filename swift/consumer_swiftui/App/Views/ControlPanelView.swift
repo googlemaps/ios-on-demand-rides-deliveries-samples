@@ -20,6 +20,9 @@ struct ControlPanelView: View {
   /// The name for add intermediate destination icon.
   private static let addIntermediateDestinationIcon = "plus"
 
+  /// The minimum scale factor for the control panel view.
+  private let controlPanelViewMinimumScaleFactor = 0.7
+
   /// The `ModelData` containing the primary state of the application.
   @EnvironmentObject var modelData: ModelData
   private let tapButtonAction: () -> Void
@@ -37,6 +40,7 @@ struct ControlPanelView: View {
       HStack(alignment: .center) {
         VStack(alignment: .leading) {
           Group { Text(modelData.staticLabel) + Text(modelData.tripInfoLabel).bold() }
+            .minimumScaleFactor(controlPanelViewMinimumScaleFactor)
             .frame(width: Style.frameWidth, height: Style.mediumFrameHeight, alignment: .topLeading)
           if modelData.timeToWaypoint != 0 && modelData.remainingDistanceInMeters != 0 {
             Text(

@@ -18,6 +18,7 @@
 #import <CoreLocation/CoreLocation.h>
 #import <Foundation/Foundation.h>
 
+#import "GRSDAPIConstants.h"
 #import "GRSDVehicleModel.h"
 
 static const int kProviderErrorCode = -1;
@@ -28,15 +29,24 @@ static NSString *const kVehicleServiceToken = @"VehicleServiceToken";
 
 // JSON data keys used and recognized by the sample provider server.
 static NSString *const kProviderDataKeyVehicleID = @"vehicleId";
+static NSString *const kProviderDataKeyRestaurantID = @"restaurantId";
+static NSString *const kProviderDataKeyVehicleState = @"vehicleState";
+static NSString *const kProviderDataKeyLastLocation = @"lastLocation";
+static NSString *const kProviderDataKeyVehicleAttributes = @"attributes";
+static NSString *const kProviderDataKeyVehicleType = @"vehicleType";
 static NSString *const kProviderDataKeyName = @"name";
 static NSString *const kProviderDataKeyToken = @"jwt";
 static NSString *const kProviderDataKeyTokenExpiration = @"expirationTimestamp";
 static NSString *const kProviderDataKeyTripStatus = @"tripStatus";
 static NSString *const kProviderDataKeyWaypoints = @"waypoints";
+static NSString *const kProviderDataKeyEtaToFirstWaypoint = @"etaToFirstWaypoint";
+static NSString *const kProviderDataKeyEtaToFirstWaypointTime = @"seconds_";
 static NSString *const kProviderDataKeyLocation = @"location";
 static NSString *const kProviderDataKeyPoint = @"point";
 static NSString *const kProviderDataKeyLatitude = @"latitude";
 static NSString *const kProviderDataKeyLongitude = @"longitude";
+static NSString *const kProviderDataKeyRouteList = @"routeList";
+static NSString *const kProviderDataKeyHeading = @"heading";
 static NSString *const kProviderDataKeyTripID = @"tripId";
 static NSString *const kProviderDataKeyStatus = @"status";
 static NSString *const kProviderDataKeyIntermediateDestinationIndex =
@@ -49,12 +59,16 @@ static NSString *const kProviderDataKeyMaximumCapacity = @"maximumCapacity";
 static NSString *const kProviderDataKeySupportedTripTypes = @"supportedTripTypes";
 
 // The base URL string for the sample provider server.
-static NSString *const kSampleProviderBaseURLString = @"http://localhost:8080/";
 static NSString *const kDriverTokenURLPath = @"token/driver/";
 static NSString *const kCreateVehicleURLPath = @"vehicle/new";
 static NSString *const kGetAvailableTripURLPath = @"trip";
 static NSString *const kUpdateTripStatusURLPath = @"trip/";
 static NSString *const kBaseVehicleURLPath = @"vehicle/";
+static NSString *const kBaseVehiclesURLPath = @"vehicles/";
+
+// Sample provider vehicle states.
+static NSString *const kProviderVehicleStateOnline = @"ONLINE";
+static NSString *const kProviderVehicleStateOffline = @"OFFLINE";
 
 // Sample provider supported trip states.
 static NSString *const GRSDProviderServiceTripStatusNew = @"NEW";
@@ -84,6 +98,11 @@ static NSInteger const kHTTPStatusOkCode = 200;
 static NSString *const kHTTPGETMethod = @"GET";
 static NSString *const kHTTPPOSTMethod = @"POST";
 static NSString *const kHTTPPUTMethod = @"PUT";
+
+// Provider string constants for vehicleAttributes.
+static NSString *const kEmptyString = @"";
+static NSString *const kKey = @"key";
+static NSString *const kValue = @"value";
 
 // Error descriptions.
 static NSString *const kInvalidAuthorizationContextDescription =
@@ -179,41 +198,48 @@ static NSURLRequest *GenerateJSONRequestWithMethod(NSString *method, NSURL *URL,
 
 /** Creates the token URL to the sample provider server. */
 static NSURL *GenerateDriverTokenURL(NSString *_Nonnull vehicleID) {
-  NSURL *baseURL = [NSURL URLWithString:kSampleProviderBaseURLString];
+  NSURL *baseURL = [NSURL URLWithString:kProviderBaseURLString];
   NSURL *driverTokenURL = [NSURL URLWithString:kDriverTokenURLPath relativeToURL:baseURL];
   return [NSURL URLWithString:vehicleID relativeToURL:driverTokenURL];
 }
 
 /** Generates the create vehicle URL to the sample provider server. */
 static NSURL *GenerateCreateVehicleURL() {
-  NSURL *baseURL = [NSURL URLWithString:kSampleProviderBaseURLString];
+  NSURL *baseURL = [NSURL URLWithString:kProviderBaseURLString];
   return [NSURL URLWithString:kCreateVehicleURLPath relativeToURL:baseURL];
 }
 
 /** Creates the fetch trip URL to the sample provider server. */
 static NSURL *GenerateFetchTripURL(NSString *tripID) {
-  NSURL *baseURL = [NSURL URLWithString:kSampleProviderBaseURLString];
+  NSURL *baseURL = [NSURL URLWithString:kProviderBaseURLString];
   NSURL *fetchURL = [NSURL URLWithString:kUpdateTripStatusURLPath relativeToURL:baseURL];
   return [NSURL URLWithString:tripID relativeToURL:fetchURL];
 }
 
 /** Creates the update trip status URL to the sample provider server. */
 static NSURL *GenerateUpdateTripStatusURL(NSString *tripID) {
-  NSURL *baseURL = [NSURL URLWithString:kSampleProviderBaseURLString];
+  NSURL *baseURL = [NSURL URLWithString:kProviderBaseURLString];
   NSURL *updateTripStatusURL = [NSURL URLWithString:kUpdateTripStatusURLPath relativeToURL:baseURL];
   return [NSURL URLWithString:tripID relativeToURL:updateTripStatusURL];
 }
 
 /** Creates the get vehicle URL to the sample provider server. */
 static NSURL *GenerateGetVehicleURL(NSString *vehicleID) {
-  NSURL *baseURL = [NSURL URLWithString:kSampleProviderBaseURLString];
+  NSURL *baseURL = [NSURL URLWithString:kProviderBaseURLString];
   NSURL *fetchURL = [NSURL URLWithString:kBaseVehicleURLPath relativeToURL:baseURL];
   return [NSURL URLWithString:vehicleID relativeToURL:fetchURL];
 }
 
+/** Creates the get vehicles URL to the sample provider server. */
+static NSURL *GenerateGetVehiclesURL(NSString *restaurantID) {
+  NSURL *baseURL = [NSURL URLWithString:kProviderBaseURLString];
+  NSURL *fetchURL = [NSURL URLWithString:kBaseVehiclesURLPath relativeToURL:baseURL];
+  return [NSURL URLWithString:restaurantID relativeToURL:fetchURL];
+}
+
 /** Generates the update vehicle URL to the sample provider server. */
 static NSURL *GenerateUpdateVehicleURL(NSString *vehicleID) {
-  NSURL *baseURL = [NSURL URLWithString:kSampleProviderBaseURLString];
+  NSURL *baseURL = [NSURL URLWithString:kProviderBaseURLString];
   NSURL *vehicleURL = [NSURL URLWithString:kBaseVehicleURLPath relativeToURL:baseURL];
   return [NSURL URLWithString:vehicleID relativeToURL:vehicleURL];
 }
@@ -261,12 +287,20 @@ static GRSDVehicleModel *_Nullable GetVehicleModelFromJSONResponse(
     NSString *vehicleID, NSDictionary<NSString *, id> *jsonResponse) {
   NSNumber *maximumCapacity = jsonResponse[kProviderDataKeyMaximumCapacity];
   id isBackToBackEnabledValue = jsonResponse[kProviderDataKeyBackToBackEnabled];
+  NSArray *vehicleAttributesArray = jsonResponse[kProviderDataKeyVehicleAttributes];
+  NSString *restaurantID = kEmptyString;
+  for (NSDictionary<NSString *, NSString *> *vehicleAttribute in vehicleAttributesArray) {
+    if ([vehicleAttribute[kKey] isEqualToString:kProviderDataKeyRestaurantID]) {
+      restaurantID = vehicleAttribute[kValue];
+    }
+  }
   if (maximumCapacity && isBackToBackEnabledValue) {
     BOOL isBackToBackEnabled = [isBackToBackEnabledValue boolValue];
     ProviderSupportedTripType supportedTripTypes =
         GetSupportedTripTypesFromJSONResponse(jsonResponse);
     GRSDVehicleModel *createdVehicleModel =
         [[GRSDVehicleModel alloc] initWithVehicleID:vehicleID
+                                       restaurantID:restaurantID
                                     maximumCapacity:maximumCapacity.unsignedIntegerValue
                                  supportedTripTypes:supportedTripTypes
                                 isBackToBackEnabled:isBackToBackEnabled];
@@ -288,17 +322,42 @@ static NSArray<NSString *> *GetSupportedTripTypesArray(
   return result;
 }
 
+/** Returns the GMTSVehicleState representations of the given @c vehicleState string */
+static GMTSVehicleState GetVehicleState(NSString *vehicleState) {
+  if ([vehicleState isEqualToString:kProviderVehicleStateOnline]) {
+    return GMTSVehicleStateOnline;
+  } else if ([vehicleState isEqualToString:kProviderVehicleStateOffline]) {
+    return GMTSVehicleStateOffline;
+  } else {
+    return GMTSVehicleStateUnknown;
+  }
+}
+
+static NSArray<NSDictionary<NSString *, id> *> *GetVehicleAttributesJSONFromVehicleModel(
+    GRSDVehicleModel *vehicleModel) {
+  NSMutableArray<NSDictionary<NSString *, id> *> *vehicleAttributesJSONArray =
+      [[NSMutableArray alloc] init];
+  if (vehicleModel.restaurantID) {
+    [vehicleAttributesJSONArray
+        addObject:@{kKey : kProviderDataKeyRestaurantID, kValue : vehicleModel.restaurantID}];
+  }
+  return [vehicleAttributesJSONArray copy];
+}
+
 /** Returns a dictionary with entries from the given @c GRSDVehicleModel. */
 static NSDictionary<NSString *, id> *GetJSONDictionaryFromVehicleModel(
     GRSDVehicleModel *vehicleModel) {
-  return @{
+  NSArray<NSDictionary<NSString *, id> *> *vehicleAttributesJSONArray =
+      GetVehicleAttributesJSONFromVehicleModel(vehicleModel);
+  NSDictionary<NSString *, id> *vehicleModelJSONDictionary = @{
     kProviderDataKeyVehicleID : vehicleModel.vehicleID,
+    kProviderDataKeyVehicleAttributes : vehicleAttributesJSONArray,
     kProviderDataKeyMaximumCapacity : @(vehicleModel.maximumCapacity),
     kProviderDataKeyBackToBackEnabled : @(vehicleModel.isBackToBackEnabled),
-    kProviderDataKeySupportedTripTypes :
-        GetSupportedTripTypesArray(vehicleModel.supportedTripTypes),
+    kProviderDataKeySupportedTripTypes : GetSupportedTripTypesArray(vehicleModel.supportedTripTypes)
   };
-}
+  return vehicleModelJSONDictionary;
+};
 
 /**
  * Returns a @c GRSDVehicleModel from the given data object. Returns nil and updates the given error
@@ -377,7 +436,132 @@ static NSArray<GMTSTripWaypoint *> *_Nullable GetTripWaypointsFromJSONResponse(
   return waypoints;
 }
 
+/** Returns an array of @c GMTSLatLng objects from a given JSON response. */
+static NSMutableArray<GMTSLatLng *> *_Nullable GetRouteListFromJSONResponse(
+    NSDictionary<NSString *, id> *response) {
+  // Note: Relaxed type and parsing error checks here since this is a sample app.
+  NSArray<NSDictionary<NSString *, id> *> *routeListJSON = response[kProviderDataKeyRouteList];
+  if (!routeListJSON) {
+    return nil;
+  }
+  NSMutableArray<GMTSLatLng *> *routeList = [[NSMutableArray alloc] init];
+  for (NSDictionary<NSString *, id> *routeJSON in routeListJSON) {
+    double latitude = [routeJSON[kProviderDataKeyLatitude] doubleValue];
+    double longitude = [routeJSON[kProviderDataKeyLongitude] doubleValue];
+    GMTSLatLng *route = [[GMTSLatLng alloc] initWithLatitude:latitude longitude:longitude];
+    [routeList addObject:route];
+  }
+  return routeList;
+}
+
+/**
+ * Returns a dictionary of @c NSString* vehicle ID, @c NSArray<GMTSTripWaypoint*>* tripWaypoints
+ * key-value pairs from a given JSON response.
+ */
+static NSDictionary *GetVehicleNameToWaypointsDictionary(
+    NSArray<NSDictionary<NSString *, id> *> *response) {
+  NSMutableDictionary *vehicleNameToWaypointsDictionary = [[NSMutableDictionary alloc] init];
+  for (NSDictionary<NSString *, id> *vehicleDictionary in response) {
+    NSString *vehicleName = vehicleDictionary[kProviderDataKeyName];
+    NSArray<GMTSTripWaypoint *> *tripWaypoints =
+        GetTripWaypointsFromJSONResponse(vehicleDictionary);
+    if (tripWaypoints != nil) {
+      [vehicleNameToWaypointsDictionary setObject:tripWaypoints forKey:vehicleName];
+    }
+  }
+  return [vehicleNameToWaypointsDictionary copy];
+}
+
+/**
+ * Returns a dictionary of @c NSString* vehicleName, @c NSNumber* etaToFirstWaypoint key-value
+ * pairs from a given JSON response.
+ */
+static NSDictionary *GetVehicleNameToFirstWaypointEtaDictionary(
+    NSArray<NSDictionary<NSString *, id> *> *response) {
+  NSMutableDictionary *vehicleNameToFirstWaypointEtaDictionary = [[NSMutableDictionary alloc] init];
+  for (NSDictionary<NSString *, id> *vehicleDictionary in response) {
+    NSString *vehicleName = vehicleDictionary[kProviderDataKeyName];
+    NSDictionary *etaToFirstWaypointDictionary =
+        vehicleDictionary[kProviderDataKeyEtaToFirstWaypoint];
+    if (etaToFirstWaypointDictionary != nil) {
+      NSDate *date = [[NSDate alloc]
+          initWithTimeIntervalSince1970:
+              (NSTimeInterval)[etaToFirstWaypointDictionary
+                                   [kProviderDataKeyEtaToFirstWaypointTime] doubleValue]];
+      NSTimeInterval etaToFirstWaypoint = [date timeIntervalSinceNow];
+      [vehicleNameToFirstWaypointEtaDictionary
+          setObject:[NSNumber numberWithDouble:etaToFirstWaypoint]
+             forKey:vehicleName];
+    }
+  }
+  return [vehicleNameToFirstWaypointEtaDictionary copy];
+}
+
+static GMTSVehicleLocation *GetVehicleLastLocationFromDictionary(
+    NSDictionary *lastLocationDictionary) {
+  NSDictionary<NSString *, NSNumber *> *vehicleLatLngDictionary =
+      lastLocationDictionary[kProviderDataKeyPoint];
+  NSNumber *vehicleLatitude = vehicleLatLngDictionary[kProviderDataKeyLatitude];
+  NSNumber *vehicleLongitude = vehicleLatLngDictionary[kProviderDataKeyLongitude];
+  GMTSLatLng *latLng = [[GMTSLatLng alloc] initWithLatitude:[vehicleLatitude doubleValue]
+                                                  longitude:[vehicleLongitude doubleValue]];
+  double heading = [lastLocationDictionary[kProviderDataKeyHeading] doubleValue];
+  GMTSVehicleLocation *lastLocation =
+      [[GMTSVehicleLocation alloc] initWithLatLng:latLng
+                                   latLngAccuracy:0.0
+                                          heading:heading
+                                  headingAccuracy:0.0
+                                            speed:0.0
+                                    speedAccuracy:0.0
+                                       updateTime:[[NSDate date] timeIntervalSince1970]
+                               isSnappableToRoute:YES];
+  return lastLocation;
+}
+
+/** Returns an array of @c GMTSVehicle objects from a given JSON response. */
+static NSArray<GMTSVehicle *> *_Nullable GetVehiclesFromJSONResponse(
+    NSArray<NSDictionary<NSString *, id> *> *response) {
+  NSMutableArray<GMTSVehicle *> *vehicles = [[NSMutableArray alloc] init];
+  for (NSDictionary<NSString *, id> *vehicleDictionary in response) {
+    NSString *vehicleName = vehicleDictionary[kProviderDataKeyName];
+    GMTSVehicleState vehicleState =
+        GetVehicleState(vehicleDictionary[kProviderDataKeyVehicleState]);
+    GMTSVehicleSupportedTripTypes supportedTripTypes =
+        (GMTSVehicleSupportedTripTypes)GetSupportedTripTypesFromJSONResponse(vehicleDictionary);
+    NSArray<NSString *> *currentTrips = vehicleDictionary[kProviderDataKeyCurrentTripIDs];
+
+    NSDictionary *lastLocationDictionary = vehicleDictionary[kProviderDataKeyLastLocation];
+    GMTSVehicleLocation *lastLocation =
+        GetVehicleLastLocationFromDictionary(lastLocationDictionary);
+
+    int32_t maximumCapacity = [vehicleDictionary[kProviderDataKeyMaximumCapacity] intValue];
+    NSMutableArray<GMTSVehicleAttributeKeyValuePair *> *vehicleAttributesMutable =
+        [[NSMutableArray alloc] init];
+    for (NSDictionary<NSString *, NSString *>
+             *keyValueDict in vehicleDictionary[kProviderDataKeyVehicleAttributes]) {
+      [vehicleAttributesMutable
+          addObject:[[GMTSVehicleAttributeKeyValuePair alloc] initWithKey:keyValueDict[kKey]
+                                                                    value:keyValueDict[kValue]]];
+    }
+    NSArray *vehicleAttributes = [vehicleAttributesMutable copy];
+    GMTSVehicleType *vehicleType =
+        [[GMTSVehicleType alloc] initWithCategory:GMTSVehicleTypeCategoryUnknown];
+
+    GMTSVehicle *vehicle = [[GMTSVehicle alloc] initWithvehicleName:vehicleName
+                                                       vehicleState:vehicleState
+                                                 supportedTripTypes:supportedTripTypes
+                                                       currentTrips:currentTrips
+                                                       lastLocation:lastLocation
+                                                    maximumCapacity:maximumCapacity
+                                                         attributes:vehicleAttributes
+                                                        vehicleType:vehicleType];
+    [vehicles addObject:vehicle];
+  }
+  return vehicles;
+}
+
 - (void)createVehicleWithID:(NSString *)vehicleID
+               restaurantID:(NSString *)restaurantID
         isBackToBackEnabled:(BOOL)isBackToBackEnabled
                  completion:(GRSDCreateVehicleWithIDHandler)completion {
   if (!completion) {
@@ -401,10 +585,19 @@ static NSArray<GMTSTripWaypoint *> *_Nullable GetTripWaypointsFromJSONResponse(
                                                  completion:completion];
       };
 
-  NSDictionary<NSString *, id> *payload = @{
+  NSMutableDictionary<NSString *, id> *mutablePayload;
+  NSDictionary<NSString *, NSString *> *restaurantIdKeyValueDict;
+  mutablePayload = [@{
     kProviderDataKeyVehicleID : vehicleID,
     kProviderDataKeyBackToBackEnabled : @(isBackToBackEnabled)
-  };
+  } mutableCopy];
+  if (![restaurantID isEqualToString:kEmptyString]) {
+    restaurantIdKeyValueDict = @{kKey : kProviderDataKeyRestaurantID, kValue : restaurantID};
+    [mutablePayload setValue:@[ restaurantIdKeyValueDict ]
+                      forKey:kProviderDataKeyVehicleAttributes];
+  }
+  NSDictionary<NSString *, id> *payload = [mutablePayload copy];
+
   NSURL *requestURL = GenerateCreateVehicleURL();
   if (!requestURL) {
     completion(nil, GRSDError(kProviderErrorCode, kInvalidRequestUrlDescription));
@@ -491,7 +684,7 @@ static NSArray<GMTSTripWaypoint *> *_Nullable GetTripWaypointsFromJSONResponse(
   }
   if (tripID.length == 0) {
     NSString *kTripIDMissingDescription = @"Encountered an unexpected invalid parameter (tripID).";
-    completion(nil, GMTSTripStatusUnknown, nil,
+    completion(nil, GMTSTripStatusUnknown, nil, nil,
                GRSDError(kProviderErrorCode, kTripIDMissingDescription));
     return;
   }
@@ -507,7 +700,7 @@ static NSArray<GMTSTripWaypoint *> *_Nullable GetTripWaypointsFromJSONResponse(
 
   NSURL *requestURL = GenerateFetchTripURL(tripID);
   if (!requestURL) {
-    completion(nil, GMTSTripStatusUnknown, nil,
+    completion(nil, GMTSTripStatusUnknown, nil, nil,
                GRSDError(kProviderErrorCode, kInvalidRequestUrlDescription));
     return;
   }
@@ -524,19 +717,19 @@ static NSArray<GMTSTripWaypoint *> *_Nullable GetTripWaypointsFromJSONResponse(
                                   error:(NSError *)error
                              completion:(GRSDFetchTripHandler)completion {
   if (error) {
-    completion(nil, GMTSTripStatusUnknown, nil, error);
+    completion(nil, GMTSTripStatusUnknown, nil, nil, error);
     return;
   }
 
   NSInteger statusCode = [(NSHTTPURLResponse *)response statusCode];
   if (statusCode != kHTTPStatusOkCode) {
-    completion(nil, GMTSTripStatusUnknown, nil,
+    completion(nil, GMTSTripStatusUnknown, nil, nil,
                GRSDError(kProviderErrorCode, kErrorFetchingTripDescription));
     return;
   }
   // The provider sends empty data if there's no available trip.
   if (data.length == 0) {
-    completion(nil, GMTSTripStatusUnknown, nil, nil);
+    completion(nil, GMTSTripStatusUnknown, nil, nil, nil);
     return;
   }
 
@@ -545,7 +738,7 @@ static NSArray<GMTSTripWaypoint *> *_Nullable GetTripWaypointsFromJSONResponse(
   NSDictionary<NSString *, id> *jsonResponse =
       [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&jsonParseError];
   if (jsonParseError) {
-    completion(nil, GMTSTripStatusUnknown, nil, jsonParseError);
+    completion(nil, GMTSTripStatusUnknown, nil, nil, jsonParseError);
     return;
   }
 
@@ -558,15 +751,15 @@ static NSArray<GMTSTripWaypoint *> *_Nullable GetTripWaypointsFromJSONResponse(
   // 'providers/providerID/trips/tripID', so strip trip ID from it.
   NSString *tripID = [fullTripName componentsSeparatedByString:@"/"].lastObject;
   if (!tripID) {
-    completion(nil, GMTSTripStatusUnknown, nil,
+    completion(nil, GMTSTripStatusUnknown, nil, nil,
                GRSDError(kProviderErrorCode, kInvalidTripIDDescription));
     return;
   }
   NSString *tripStatusString = tripResponse[kProviderDataKeyTripStatus];
   GMTSTripStatus tripStatus = GetTripStatusFromProviderString(tripStatusString);
   NSArray<GMTSTripWaypoint *> *waypoints = GetTripWaypointsFromJSONResponse(tripResponse);
-
-  completion(tripID, tripStatus, [waypoints copy], nil);
+  NSMutableArray<GMTSLatLng *> *routeList = GetRouteListFromJSONResponse(tripResponse);
+  completion(tripID, tripStatus, [waypoints copy], routeList, nil);
 }
 
 - (void)updateTripWithStatus:(GMTSTripStatus)newStatus
@@ -706,6 +899,71 @@ static NSArray<GMTSTripWaypoint *> *_Nullable GetTripWaypointsFromJSONResponse(
   NSArray *currentTripIDs = jsonResponse[kProviderDataKeyCurrentTripIDs];
   NSArray<GMTSTripWaypoint *> *waypoints = GetTripWaypointsFromJSONResponse(jsonResponse);
   completion(currentTripIDs, waypoints, nil);
+}
+
+- (void)fetchVehiclesWithRestaurantID:(NSString *)restaurantID
+                           completion:(nonnull GRSDFetchVehiclesWithRestaurantIDHandler)completion {
+  if (!completion) {
+    NSAssert(NO, @"%s encountered an unexpected nil completion.", __PRETTY_FUNCTION__);
+    return;
+  }
+
+  __weak typeof(self) weakSelf = self;
+  void (^handler)(NSData *, NSURLResponse *, NSError *) =
+      ^(NSData *data, NSURLResponse *response, NSError *error) {
+        [weakSelf handleFetchVehiclesResponseWithData:data
+                                             response:response
+                                                error:error
+                                           completion:completion];
+      };
+
+  NSURL *requestURL = GenerateGetVehiclesURL(restaurantID);
+  if (!requestURL) {
+    completion(nil, nil, nil, GRSDError(kProviderErrorCode, kInvalidRequestUrlDescription));
+    return;
+  }
+
+  NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:requestURL];
+  request.HTTPMethod = kHTTPGETMethod;
+  NSURLSessionDataTask *task = [self.session dataTaskWithRequest:request completionHandler:handler];
+  [task resume];
+}
+
+- (void)handleFetchVehiclesResponseWithData:(NSData *)data
+                                   response:(NSURLResponse *)response
+                                      error:(NSError *)error
+                                 completion:(GRSDFetchVehiclesWithRestaurantIDHandler)completion {
+  if (error) {
+    completion(nil, nil, nil, error);
+    return;
+  }
+
+  NSInteger statusCode = [(NSHTTPURLResponse *)response statusCode];
+  if (statusCode != kHTTPStatusOkCode) {
+    completion(nil, nil, nil, GRSDError(kProviderErrorCode, kErrorFetchingVehicleDescription));
+    return;
+  }
+
+  // The provider sends empty data if there are no vehicles
+  if (data.length == 0) {
+    completion(nil, nil, nil, nil);
+    return;
+  }
+
+  // Write response to JSON object.
+  NSError *jsonParseError;
+  NSArray<NSDictionary<NSString *, id> *> *jsonResponse =
+      [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&jsonParseError];
+  if (jsonParseError) {
+    completion(nil, nil, nil, jsonParseError);
+    return;
+  }
+
+  NSArray<GMTSVehicle *> *vehicles = GetVehiclesFromJSONResponse(jsonResponse);
+  NSDictionary *vehicleIDtoWaypointsDictionary = GetVehicleNameToWaypointsDictionary(jsonResponse);
+  NSDictionary *vehicleIDtoFirstWaypointEtaDictionary =
+      GetVehicleNameToFirstWaypointEtaDictionary(jsonResponse);
+  completion(vehicles, vehicleIDtoWaypointsDictionary, vehicleIDtoFirstWaypointEtaDictionary, nil);
 }
 
 #pragma mark - GMTDAuthorization

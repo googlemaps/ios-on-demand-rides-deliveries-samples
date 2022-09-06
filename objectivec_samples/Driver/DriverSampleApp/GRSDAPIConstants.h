@@ -24,3 +24,8 @@ FOUNDATION_EXTERN NSString *_Nonnull const kMapsAPIKey;
  * The Project ID of the Google Cloud Project used to call the Fleet Engine APIs.
  */
 FOUNDATION_EXTERN NSString *_Nonnull const kProviderID;
+
+/**
+ * The base URL for requests to the provider.
+ */
+FOUNDATION_EXTERN NSString *_Nonnull const kProviderBaseURLString;

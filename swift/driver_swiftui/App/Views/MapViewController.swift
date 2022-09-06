@@ -23,6 +23,10 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, GMSNavigat
   GMTDVehicleReporterListener
 {
 
+  /// Whether to use simulated location for testing purposes. If false, the real device location is
+  /// used. This should be set to false before testing this app in the real world.
+  private static let isSimulatingLocation = true
+
   /// Coordinates of San Francisco used as the initial driver location for testing purposes.
   private static let sanFranciscoCoordinates = CLLocationCoordinate2D(
     latitude: 37.7749295, longitude: -122.4194155)
@@ -119,10 +123,10 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, GMSNavigat
     mapView.navigator?.add(self)
     mapView.roadSnappedLocationProvider?.allowsBackgroundLocationUpdates = true
 
-    // Simulate the driver location at a fixed coordinate.
-    // Note: The locationSimulator allows the user location to be simulated for testing purposes,
-    // and references to it should be removed before testing this app in the real world.
-    mapView.locationSimulator?.simulateLocation(at: MapViewController.sanFranciscoCoordinates)
+    if Self.isSimulatingLocation {
+      // Simulate the driver location at a fixed coordinate for testing purposes,
+      mapView.locationSimulator?.simulateLocation(at: Self.sanFranciscoCoordinates)
+    }
 
     createVehicle()
   }
@@ -277,7 +281,9 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, GMSNavigat
     // Upon arrival, remove the first waypoint from the list.
     modelData.waypoints?.removeFirst()
 
-    mapView.locationSimulator?.isPaused = true
+    if Self.isSimulatingLocation {
+      mapView.locationSimulator?.isPaused = true
+    }
     switch waypoint.waypointType {
     case .pickUp:
       updateTrip(status: .arrivedAtPickup)
@@ -290,7 +296,9 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, GMSNavigat
       modelData.intermediateDestinationIndex += 1
     case .dropOff:
       updateTrip(status: .complete)
-      mapView.locationSimulator?.stopSimulation()
+      if Self.isSimulatingLocation {
+        mapView.locationSimulator?.stopSimulation()
+      }
       mapView.navigator?.clearDestinations()
 
       // If a next trip is available, switch to that trip.
@@ -368,12 +376,12 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, GMSNavigat
     mapView.navigator?.isGuidanceActive = true
     mapView.cameraMode = .following
 
-    // Simulate vehicle progress along the route.
-    // Note: The locationSimulator allows the user location to be simulated for testing purposes.
-    // References to it should be removed before testing this app in the real world.
-    if let locationSimulator = mapView.locationSimulator {
-      locationSimulator.isPaused = false
-      locationSimulator.simulateLocationsAlongExistingRoute()
+    if Self.isSimulatingLocation {
+      // Simulate vehicle progress along the route for testing purposes.
+      if let locationSimulator = mapView.locationSimulator {
+        locationSimulator.isPaused = false
+        locationSimulator.simulateLocationsAlongExistingRoute()
+      }
     }
   }
 

@@ -15,17 +15,37 @@
 
 #import "GRSCProviderUtils.h"
 
+#import "GRSCAPIConstants.h"
+
+// HTTP constants.
+NSInteger const kGRSCHTTPSuccessCode = 200;
+NSString *const kGRSCHTTPMethodPOST = @"POST";
+NSString *const kGRSCHTTPMethodPUT = @"PUT";
+NSString *const kGRSCHTTPContentTypeHeaderField = @"Content-Type";
+NSString *const kGRSCHTTPJSONContentType = @"application/json";
+NSString *const kGRSCHTTPGoogleCloudApiKeyHeaderField = @"X-Goog-Api-Key";
+
+// Request parameter keys.
+static NSString *const kGRSCLatitudeKey = @"latitude";
+static NSString *const kGRSCLongitudeKey = @"longitude";
+
 // Provider error defaults.
 static const int kProviderErrorCode = -1;
 static NSString *const kGRSCErrorDomain = @"GRSCErrorDomain";
 
-// Provider URL Strings.
-static NSString *const kGRSCBaseProviderURLString = @"http://localhost:8080";
-
 // Error descriptions.
+NSString *const kExpectedFieldsNotFoundErrorDescription = @"Expected fields not found in response.";
 NSString *const kGRSCUnexpectedJSONClassTypeErrorDescription =
     @"Unexpected class type for JSON response.";
 NSString *const kGRSCInvalidRequestURLDescription = @"Invalid request URL.";
+
+/** Returns a dictionary representation of a given LatLng. */
+static NSDictionary *_Nonnull GetDictionaryFromLatLng(GMTSLatLng *_Nonnull latLng) {
+  return @{
+    kGRSCLatitudeKey : @(latLng.latitude),
+    kGRSCLongitudeKey : @(latLng.longitude),
+  };
+}
 
 NSError *GRSCError(NSString *description) {
   NSDictionary<NSErrorUserInfoKey, NSString *> *userInfo = @{
@@ -35,7 +55,7 @@ NSError *GRSCError(NSString *description) {
 }
 
 NSURL *GRSCProviderURLWithPath(NSString *path) {
-  NSURL *baseProviderNSURL = [NSURL URLWithString:kGRSCBaseProviderURLString];
+  NSURL *baseProviderNSURL = [NSURL URLWithString:kProviderBaseURLString];
   return [NSURL URLWithString:path relativeToURL:baseProviderNSURL];
 }
 
@@ -57,4 +77,9 @@ GRSCProviderFieldsDictionary *GRSCGetDictionaryFromJSONData(NSData *data, NSErro
     *error = errorToPropagate;
   }
   return nil;
+}
+
+NSDictionary *_Nonnull GRSCGetDictionaryFromTerminalLocation(
+    GMTSTerminalLocation *_Nonnull location) {
+  return GetDictionaryFromLatLng(location.point);
 }
