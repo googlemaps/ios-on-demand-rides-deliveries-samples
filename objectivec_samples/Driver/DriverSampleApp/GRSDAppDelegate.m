@@ -26,6 +26,7 @@
 - (BOOL)application:(UIApplication *)application
     didFinishLaunchingWithOptions:(NSDictionary<NSString *, __kindof NSObject *> *)launchOptions {
   [GMSServices provideAPIKey:kMapsAPIKey];
+  [GMSServices setMetalRendererEnabled:YES];
 
   // Register for notifications so that the SDK can post directions notifications when the app is
   // running in the background.
