@@ -15,6 +15,7 @@
 
 #import <Foundation/Foundation.h>
 
+#import <GoogleRidesharingConsumer/GoogleRidesharingConsumer.h>
 #import <GoogleRidesharingDriver/GoogleRidesharingDriver.h>
 
 NS_ASSUME_NONNULL_BEGIN

@@ -1,27 +1,34 @@
 # On-Demand Rides and Deliveries iOS Samples
 
-This repository contains source code of the following samples.
+This repository contains source code for the following sample apps.
 
-1. Driver SDK sample, available in two languages:
+1. The Driver SDK sample, available in two languages:
    - Swift: in `swift/driver_swiftui` directory.
    - Objective-C: in `objectivec_samples/Driver` directory.
-2. Consumer SDK sample, available in two languages:
+2. The Consumer SDK sample, available in two languages:
    - Swift: in `swift/consumer_swiftui` directory.
    - Objective-C: in `objectivec_samples/Consumer` directory.
 
-You can use the following guide to build and run a basic consumer and driver app integrated with the On-demand Rides and Deliveries Solution backend services. After completing this guide, you should have an app that can display an active trip, respond to trip updates, and handle trip errors.
+Use the following guide to build and run a basic consumer and a driver app
+that uses these SDK samples. This will help you integrate your app with the
+On-demand Rides and Deliveries Solution backend services. 
 
-Note: Before building your app, you need to have your provider services in place including vehicle to consumer matching functionality. Specifically, you need the Cloud Project ID unique to the service provider the consumer app supports.
+After completing this guide, you should have an app that can display an active
+trip, respond to trip updates, and handle trip errors.
 
 ## Prerequisites
-1. Please fully complete [Getting Started with Fleet Engine](https://developers.google.com/maps/documentation/transportation-logistics/on-demand-rides-deliveries-solution/trip-order-progress/fleet-engine)
-2. Please make sure the [provider backend](https://github.com/googlemaps/java-on-demand-rides-deliveries-stub-provider)
-is up and running.
-3. To access the CocoaPods of Consumer and Driver SDKs, please make sure to be a member of the
-Google group [google-maps-odrd-access-external](https://groups.google.com/a/google.com/g/google-maps-odrd-access-external).
-5. Please authenticate by visiting https://cpdc-eap.googlesource.com/new-password
-and setting up a git cookie.
-6. Install CocoaPods on the development machine
+
+This guide assumes you have done all of the following.
+
+1. Established a Cloud project service account with a project ID needed
+   for running the sample apps. 
+2. Set up Fleet Engine as described in 
+   [Getting Started with Fleet Engine](https://developers.google.com/maps/documentation/transportation-logistics/on-demand-rides-deliveries-solution/trip-order-progress/fleet-engine)
+3. Set up the [provider backend](https://github.com/googlemaps/java-on-demand-rides-deliveries-stub-provider)
+   and have it running.
+4. Authenticated your service by visiting https://cpdc-eap.googlesource.com/new-password
+   and setting up a git cookie.
+5. Installed CocoaPods on the development machine
 
     ```shell
     sudo gem install cocoapods
@@ -33,7 +40,7 @@ and setting up a git cookie.
 
 
 ## Get started
-After all prerequisites are met:
+After you have met all prerequisites:
 
 1.  Open a terminal and go to the directory containing the Podfile:
 
@@ -62,6 +69,15 @@ After all prerequisites are met:
     - For Objective-C, update `kMapsAPIKey` in `GRSCAPIConstants.m` for the
       Consumer app and in `GRSDAPIConstants.m` for the Driver app.
 
+1.  (Optional) Follow the
+    [Use API Keys with Location Selection API guide](https://developers.google.com/maps/documentation/transportation-logistics/on-demand-rides-deliveries-solution/pickup-and-dropoff-selection/location-selection/get-api-key)
+    to add your Location Selection API key to your app.
+
+    - For Swift, update `locationSelectionAPIKey` in `APIConstants.swift` for Consumer.
+
+    - For Objective-C, update `kLocationSelectionAPIKey` in `GRSCAPIConstants.m` for the
+      Consumer app.
+
 1.  Add the Provider ID to your app. The Provider ID is the Project ID of the
     Google Cloud Project that contains the service account used to call the
     Fleet Engine APIs.
@@ -73,6 +89,20 @@ After all prerequisites are met:
       Consumer app and in `GRSDAPIConstants.m` for the Driver app.
 
 Then the project should run normally.
+
+## Versioning
+
+As of version 3.3.0, these samples introduce the Driver SDK and Consumer SDKs
+compatibility together in a single app. This version also removes those
+public classes from the Driver SDK source code that are only used by the
+Consumer SDK. To use the removed classes in the Driver SDK sample apps, the app
+must include Consumer SDK v3.3.0+ as a dependency.
+
+Note: As of version 3.3.0 onward, Driver SDK sample apps developed against
+the Driver & Consumer SDKs are compatible only with SDK versions 3.3.0 and
+higher. Correspondingly, Driver SDK sample apps updated prior to versions 3.3.0 can
+only work with Driver SDK version lower than 3.3.0.
+
 
 ## License
 

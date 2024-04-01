@@ -14,6 +14,7 @@
  */
 
 import Foundation
+import GoogleRidesharingConsumer
 import GoogleRidesharingDriver
 
 private enum RPCConstants {

@@ -2,9 +2,11 @@ source 'https://github.com/CocoaPods/Specs.git'
 
 target 'DriverSampleApp' do
   platform :ios, '15.0'
+  pod 'GoogleRidesharingConsumer'
   pod 'GoogleRidesharingDriver'
   target 'UnitTests' do
     inherit! :search_paths
+    pod 'GoogleRidesharingConsumer'
     pod 'GoogleRidesharingDriver'
   end
 end
