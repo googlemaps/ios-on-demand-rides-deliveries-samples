@@ -26,11 +26,9 @@ This guide assumes you have done all of the following.
    [Getting Started with Fleet Engine](https://developers.google.com/maps/documentation/transportation-logistics/on-demand-rides-deliveries-solution/trip-order-progress/fleet-engine)
 3. Set up the [provider backend](https://github.com/googlemaps/java-on-demand-rides-deliveries-stub-provider)
    and have it running.
-4. Joined the Google group [google-maps-odrd-access-external](https://groups.google.com/a/google.com/g/google-maps-odrd-access-external)
-   in order to access the CocoaPods of Consumer and Driver SDKs.
-5. Authenticated your service by visiting https://cpdc-eap.googlesource.com/new-password
+4. Authenticated your service by visiting https://cpdc-eap.googlesource.com/new-password
    and setting up a git cookie.
-6. Installed CocoaPods on the development machine
+5. Installed CocoaPods on the development machine
 
     ```shell
     sudo gem install cocoapods
