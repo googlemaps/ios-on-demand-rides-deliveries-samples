@@ -25,7 +25,6 @@
 - (BOOL)application:(UIApplication *)application
     didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
   [GMSServices provideAPIKey:kMapsAPIKey];
-  [GMSServices setMetalRendererEnabled:YES];
 
   [GMTCServices setAccessTokenProvider:[[GRSCAuthTokenProvider alloc] init]
                             providerID:kProviderID];
