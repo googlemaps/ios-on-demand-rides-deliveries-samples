@@ -22,7 +22,6 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
     GMSServices.provideAPIKey(APIConstants.mapsAPIKey)
-    GMSServices.setMetalRendererEnabled(true)
     GMTCServices.setAccessTokenProvider(AuthTokenProvider(), providerID: APIConstants.providerID)
     return true
   }
