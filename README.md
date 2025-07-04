@@ -103,6 +103,15 @@ the Driver & Consumer SDKs are compatible only with SDK versions 3.3.0 and
 higher. Correspondingly, Driver SDK sample apps updated prior to versions 3.3.0 can
 only work with Driver SDK version lower than 3.3.0.
 
+## Terms of Service
+
+This sample uses Google Maps Platform services. Use of Google Maps Platform
+services through this sample is subject to the
+[Google Maps Platform Terms of Service](https://cloud.google.com/maps-platform/terms).
+
+**European Economic Area (EEA) developers**
+
+If your billing address is in the European Economic Area, effective on 8 July 2025, the [Google Maps Platform EEA Terms of Service](https://cloud.google.com/terms/maps-platform/eea) will apply to your use of the Services. Functionality varies by region. [Learn more](https://developers.google.com/maps/comms/eea/faq).
 
 ## License
 
